@@ -7,12 +7,25 @@
 # include <string>
 # include <vector>
 
-//forward declaration
-class Channel;
-class Client;
-class Command;
 
-//Server should owns the listening socket, every Client, every Channel
+# include <arpa/inet.h>
+# include <cctype>
+# include <cstring>
+# include <fcntl.h>
+# include <iostream>
+# include <netinet/in.h>
+# include <poll.h>
+# include <stdexcept>
+# include <sys/socket.h>
+# include <unistd.h>
+
+
+// //forward declaration
+// class Channel;
+// class Client;
+// class Command;
+
+// //Server should owns the listening socket, every Client, every Channel
 
 class Server
 {
@@ -27,26 +40,23 @@ private:
 	//the server shouldn't be copiable or initilized multiple times for obvious reasons
 	//OCF isn't required anywa
     Server(const Server &other);
-    Server &operator=(const Server &other);
+	Server &operator=(const Server &other);
 
-	int                             _listenFd;
+	//socket
+	void createListeningSocket(unsigned short port);
+	bool receiveFromClient(std::size_t index);
+	void setNonBlocking(int fd);
+	void addPollFd(int fd, short events);
+	void acceptClient();
+	void removeClient(std::size_t index);
+	
+	// void Server::closeListeningSocket(unsigned short port);
+
+	int                             _listenerFd;
+	std::vector<struct pollfd> 		_pollFds;
     std::string                     _password;
-    std::map<int, Client *>         _clients;
-    std::map<std::string, Channel *> _channels;
+    // std::map<int, Client *>         _clients;
+    // std::map<std::string, Channel *> _channels;
 };
 
 #endif
-
-//to add :
-    // void dispatch(Client &client, const std::string command);
-    // void handlePass(Client &client, const std::string command);
-    // void handleNick(Client &client, const std::string command);
-    // void handleUser(Client &client, const std::string command);
-    // void handlePing(Client &client, const std::string command);
-    // void handleJoin(Client &client, const std::string command);
-    // void handlePart(Client &client, const std::string command);
-    // void handleMessage(Client &client, const std::string command);
-    // void handleTopic(Client &client, const std::string command);
-    // void handleKick(Client &client, const std::string command);
-
-	//eventually command should probably be its own class
