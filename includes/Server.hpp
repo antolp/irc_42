@@ -55,6 +55,8 @@ private:
 	void addPollFd(int fd, short events);
 	void acceptClient();
 	void removeClient(std::size_t index);
+	Client *findClient(int fd);
+
 	
 	//send experiment
 	void queueBroadcast(int senderFd, const char* data, std::size_t length);

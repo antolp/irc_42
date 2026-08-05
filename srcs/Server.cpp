@@ -12,9 +12,8 @@ void Server::handleSignal(int signalNumber)
 	_stopRequested = 1;
 }
 
-//Install small process-wide handlers before any Server instance is started
+//Install small process singal handlers before any Server instance is ran
 //SIGPIPE is ignored because it fucks with send()
-//send failure rather than terminate the whole process (equivalent lol)
 void Server::installSignalHandlers()
 {
 	struct sigaction action;
@@ -40,6 +39,17 @@ void Server::installSignalHandlers()
 		throw std::runtime_error("sigaction() failed for SIGPIPE");
 }
 
+//returns Client * from FD
+Client *Server::findClient(int fd)
+{
+	std::map<int, Client *>::iterator it =
+		_clients.find(fd);
+
+	if (it == _clients.end())
+		return NULL;
+
+	return it->second;
+}
 
 //Registers a descriptor and the events it should watch in the collection
 //passed to poll(). revents will later contain the events reported by poll()

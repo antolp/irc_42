@@ -1,67 +1,72 @@
 #include "Server.hpp"
+#include "Client.hpp"
 
-//queues received bytes for every connected client except the sender
+//queues received bytes for every client except the sender
+//now makes us of the Client class
+//still queueing raw bytes
 void Server::queueBroadcast(
-    int senderFd,
-    const char* data,
-    std::size_t length)
+	int senderFd,
+	const char *data,
+	std::size_t length)
 {
-    for (std::size_t i = 0; i < _pollFds.size(); ++i)
-    {
-        const int targetFd = _pollFds[i].fd;
+	for (std::size_t i = 0; i < _pollFds.size(); ++i)
+	{
+		const int targetFd = _pollFds[i].fd;
 
-        if (targetFd == _listenerFd || targetFd == senderFd)
-            continue;
+		if (targetFd == _listenerFd
+			|| targetFd == senderFd)
+			continue;
 
-        _outputBuffers[targetFd].append(data, length);
+		Client *target = findClient(targetFd);
 
-        //ask the next poll() call to report when this socket can be written
-		//hangs without this
-        _pollFds[i].events |= POLLOUT;
-    }
+		if (target == NULL)
+			continue;
+
+		target->appendOutput(data, length);
+		_pollFds[i].events |= POLLOUT;
+	}
 }
 
 //sends part of a client's queued output after poll() reports POLLOUT
 //false when client should be disconnected
+//Now using Client output_buffer
 bool Server::flushClientOutput(std::size_t index)
 {
-    const int fd = _pollFds[index].fd;
+	const int fd = _pollFds[index].fd;
+	Client   *client = findClient(fd);
 
-    std::map<int, std::string>::iterator output =
-        _outputBuffers.find(fd);
+	if (client == NULL)
+		return false;
 
-    if (output == _outputBuffers.end() || output->second.empty())
-    {
-        _pollFds[index].events &= ~POLLOUT;
-        return true;
-    }
+	if (!client->hasOutput())
+	{
+		_pollFds[index].events &= ~POLLOUT;
+		return true;
+	}
 
-    const ssize_t sent = send(
-        fd,
-        output->second.data(),
-        output->second.size(),
-        0
-    );
+	const ssize_t sent = send(
+		fd,
+		client->getOutputData(),
+		client->getOutputSize(),
+		0
+	);
 
-    if (sent <= 0)
-    {
-        std::cerr
-            << "send() failed for fd "
-            << fd
-            << std::endl;
+	if (sent <= 0)
+	{
+		std::cerr
+			<< "send() failed for fd "
+			<< fd
+			<< std::endl;
 
-        return false;
-    }
+		return false;
+	}
 
-    output->second.erase(
-        0,
-        static_cast<std::size_t>(sent)
-    );
+	client->consumeOutput(
+		static_cast<std::size_t>(sent)
+	);
 
-    //stop watching for writable events when nothing remains to send
-	//again hangs without this, sometimes
-    if (output->second.empty())
-        _pollFds[index].events &= ~POLLOUT;
+	if (!client->hasOutput())
+		_pollFds[index].events &= ~POLLOUT;
 
-    return true;
+	return true;
 }
