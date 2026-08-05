@@ -78,9 +78,13 @@ Server::Server(unsigned short port, const std::string &password)
 
 Server::~Server()
 {
-	//destroy clients
+	//destroy clients (responsible for deleting their FDs)
+	for (std::map<int, Client *>::iterator it = _clients.begin();
+		 it != _clients.end(); ++it)
+	{
+		delete it->second;
+	}
 	//destroy channels
-	//respective class responsible of releasing of their socket's fds (clients)
 
 	//releases the kernel's listening socket
 	for (std::size_t i = 0; i < _pollFds.size(); ++i)
@@ -100,7 +104,7 @@ void Server::setNonBlocking(int fd)
 
 //for now just to test TCP connections
 //one poll() call to report fd readiness
-//then accept(), recv() end eventually send() (not here yet)
+//then accept(), recv(), send()
 void Server::run()
 {
 	while (!_stopRequested)

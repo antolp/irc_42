@@ -21,8 +21,8 @@
 
 
 // //forward declaration
+class Client;
 // class Channel;
-// class Client;
 // class Command;
 
 // //Server should owns the listening socket, every Client, every Channel
@@ -69,7 +69,7 @@ private:
 	//temp outgoing-data storage indexed by client descriptor
 	//later Client::_outputBuffer.
 	std::map<int, std::string> _outputBuffers;
-    // std::map<int, Client *>         _clients;
+    std::map<int, Client *>         _clients;
     // std::map<std::string, Channel *> _channels;
 };
 

@@ -1,4 +1,5 @@
 #include "Server.hpp"
+#include "Client.hpp"
 
 //Create, configure, bind, and start the TCP listening socket
 //Every failure closes the temporary descriptor before throwing, so partial startup shouldn't leak a file descriptor
@@ -65,18 +66,18 @@ void Server::createListeningSocket(unsigned short port)
 
 //Accepts one pending connection after poll() reports POLLIN on the
 //listening socket, makes the new socket non-blocking, and registers it
+//
 //(see Server::run())
 void Server::acceptClient()
 {
 	struct sockaddr_in clientAddress;
 	socklen_t          addressSize;
 	int                clientFd;
+	Client            *client;
 
 	std::memset(&clientAddress, 0, sizeof(clientAddress));
 	addressSize = sizeof(clientAddress);
 
-	//accept() syscall : removes one completed connection from
-	//the listen queue and returns a new socket dedicated to that peer
 	clientFd = accept(
 		_listenerFd,
 		reinterpret_cast<struct sockaddr *>(&clientAddress),
@@ -89,35 +90,63 @@ void Server::acceptClient()
 		return;
 	}
 
+	client = NULL;
+
 	try
 	{
 		setNonBlocking(clientFd);
+
+		if (_clients.find(clientFd) != _clients.end())
+		{
+			throw std::runtime_error(
+				"accepted fd already belongs to a client"
+			);
+		}
+		//Client object now represents this connected socket
+		client = new Client(clientFd);
+
+		_clients.insert(std::make_pair(clientFd, client));
+		_outputBuffers.insert(
+			std::make_pair(clientFd, std::string())
+		);
 		addPollFd(clientFd, POLLIN);
 	}
 	catch (...)
 	{
-		close(clientFd);
+		_outputBuffers.erase(clientFd);
+		_clients.erase(clientFd);
+		if (client != NULL)
+			delete client;
+		else
+			close(clientFd);
 		throw;
 	}
 
-	// setNonBlocking(clientFd);
-	_outputBuffers[clientFd] = "";
-
 	std::cout
 		<< "New client connected: fd "
-		<< clientFd
+		<< client->getFd()
 		<< std::endl;
 }
 
 //closes the client descriptor at index and removes its pollfd entry
-//again no client object yet
+//then delete client
 void Server::removeClient(std::size_t index)
 {
 	const int fd = _pollFds[index].fd;
 
+	std::map<int, Client *>::iterator client =
+		_clients.find(fd);
+
 	_outputBuffers.erase(fd);
-	close(fd);
 	_pollFds.erase(_pollFds.begin() + index);
+
+	if (client != _clients.end())
+	{
+		Client *removed = client->second;
+
+		_clients.erase(client);
+		delete removed;
+	}
 
 	std::cout
 		<< "Removed client fd "

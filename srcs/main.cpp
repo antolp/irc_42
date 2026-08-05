@@ -39,7 +39,6 @@ int main(int argc, char **argv)
 	//try to initialize and start the server
 	try
 	{
-		// Server::SignalHandlers();
 		Server server(port, argv[2]);
 		server.run();
 	}
