@@ -42,6 +42,12 @@ private:
     Server(const Server &other);
 	Server &operator=(const Server &other);
 
+	//process signals
+    static volatile sig_atomic_t _stopRequested;
+    static void handleSignal(int signalNumber);
+	void installSignalHandlers();
+
+
 	//socket
 	void createListeningSocket(unsigned short port);
 	bool receiveFromClient(std::size_t index);
