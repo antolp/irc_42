@@ -47,6 +47,15 @@ void Server::addPollFd(int fd, short events)
 {
 	//DEBUG
 	std::cout << "adding " << fd << " " << events << " at addPollFd" << std::endl;
+
+	for (std::size_t i = 0; i < _pollFds.size(); ++i)
+	{
+		if (_pollFds[i].fd == fd)
+			throw std::runtime_error(
+				"attempted to register the same fd twice !!!"
+			);
+	}
+	
 	struct pollfd descriptor;
 
 	descriptor.fd = fd;
@@ -142,6 +151,15 @@ void Server::run()
 			if (events & POLLIN)
 			{
 				if (!receiveFromClient(i))
+				{
+					removeClient(i);
+					continue;
+				}
+			}
+
+			if (events & POLLOUT)
+			{
+				if (!flushClientOutput(i))
 				{
 					removeClient(i);
 					continue;

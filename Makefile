@@ -3,7 +3,7 @@ NAME = ircserv
 CXX = c++
 CXXFLAGS = -Wall -Wextra -Werror -std=c++98 -Iincludes
 
-SOURCES =	srcs/main.cpp srcs/Server.cpp srcs/ServerSocket.cpp \
+SOURCES =	srcs/main.cpp srcs/Server.cpp srcs/ServerSocket.cpp srcs/ServerSend.cpp \
 			srcs/Client.cpp
 OBJECTS = $(SOURCES:.cpp=.o)
 

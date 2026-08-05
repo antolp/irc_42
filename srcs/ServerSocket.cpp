@@ -68,98 +68,109 @@ void Server::createListeningSocket(unsigned short port)
 //(see Server::run())
 void Server::acceptClient()
 {
-    struct sockaddr_in clientAddress;
-    socklen_t          addressSize;
-    int                clientFd;
+	struct sockaddr_in clientAddress;
+	socklen_t          addressSize;
+	int                clientFd;
 
-    std::memset(&clientAddress, 0, sizeof(clientAddress));
-    addressSize = sizeof(clientAddress);
+	std::memset(&clientAddress, 0, sizeof(clientAddress));
+	addressSize = sizeof(clientAddress);
 
 	//accept() syscall : removes one completed connection from
-    //the listen queue and returns a new socket dedicated to that peer
-    clientFd = accept(
-        _listenerFd,
-        reinterpret_cast<struct sockaddr *>(&clientAddress),
-        &addressSize
-    );
+	//the listen queue and returns a new socket dedicated to that peer
+	clientFd = accept(
+		_listenerFd,
+		reinterpret_cast<struct sockaddr *>(&clientAddress),
+		&addressSize
+	);
 
-    if (clientFd == -1)
-    {
-        std::cerr << "accept() failed" << std::endl;
-        return;
-    }
+	if (clientFd == -1)
+	{
+		std::cerr << "accept() failed" << std::endl;
+		return;
+	}
 
-    try
-    {
-        setNonBlocking(clientFd);
-        addPollFd(clientFd, POLLIN);
-    }
-    catch (...)
-    {
-        close(clientFd);
-        throw;
-    }
+	try
+	{
+		setNonBlocking(clientFd);
+		addPollFd(clientFd, POLLIN);
+	}
+	catch (...)
+	{
+		close(clientFd);
+		throw;
+	}
 
-    std::cout
-        << "New client connected: fd "
-        << clientFd
-        << std::endl;
+	// setNonBlocking(clientFd);
+	_outputBuffers[clientFd] = "";
+
+	std::cout
+		<< "New client connected: fd "
+		<< clientFd
+		<< std::endl;
 }
 
 //closes the client descriptor at index and removes its pollfd entry
 //again no client object yet
 void Server::removeClient(std::size_t index)
 {
-    const int fd = _pollFds[index].fd;
+	const int fd = _pollFds[index].fd;
 
-    close(fd);
-    _pollFds.erase(_pollFds.begin() + index);
+	_outputBuffers.erase(fd);
+	close(fd);
+	_pollFds.erase(_pollFds.begin() + index);
 
-    std::cout
-        << "Removed client fd "
-        << fd
-        << std::endl;
+	std::cout
+		<< "Removed client fd "
+		<< fd
+		<< std::endl;
 }
 
 //Reads currently available bytes from the client represented by the
 //pollfd at index. Returns false when the connection must be removed
 bool Server::receiveFromClient(std::size_t index)
 {
-    const int fd = _pollFds[index].fd;
-    char      buffer[1024];
+	const int fd = _pollFds[index].fd;
+	char      buffer[1024];
 
 	//recv() syscall : copies currently available TCP bytes into given buffer 
 	//It is called once for POLLIN event. A non-positive result
-    //ends this client;s errno is not inspected and does not control a retry (unsure)
-    const ssize_t received = recv(fd, buffer, sizeof(buffer), 0);
+	//ends this client;s errno is not inspected and does not control a retry (unsure)
+	const ssize_t received = recv(fd, buffer, sizeof(buffer), 0);
 
-    if (received == 0)
-    {
-        std::cout
-            << "Client disconnected: fd "
-            << fd
-            << std::endl;
+	if (received == 0)
+	{
+		std::cout
+			<< "Client disconnected: fd "
+			<< fd
+			<< std::endl;
 
-        return false;
-    }
+		return false;
+	}
 
-    if (received < 0)
-    {
-        std::cerr
-            << "recv() failed for fd "
-            << fd
-            << std::endl;
+	if (received < 0)
+	{
+		std::cerr
+			<< "recv() failed for fd "
+			<< fd
+			<< std::endl;
 
-        return false;
-    }
+		return false;
+	}
 
-    std::cout
-        << "Received from fd "
-        << fd
-        << ": ";
+	std::cout
+		<< "Received from fd "
+		<< fd
+		<< ": ";
 
-    std::cout.write(buffer, received);
-    std::cout << std::flush;
+	std::cout.write(buffer, received);
+	std::cout << std::flush;
+	
+	//give received bytes to dispatch to other clients
+	queueBroadcast(
+		fd,
+		buffer,
+		static_cast<std::size_t>(received)
+	);
 
-    return true;
+	return true;
 }

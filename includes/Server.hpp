@@ -56,11 +56,19 @@ private:
 	void acceptClient();
 	void removeClient(std::size_t index);
 	
+	//send experiment
+	void queueBroadcast(int senderFd, const char* data, std::size_t length);
+	bool flushClientOutput(std::size_t index);
+	
 	// void Server::closeListeningSocket(unsigned short port);
 
 	int                             _listenerFd;
 	std::vector<struct pollfd> 		_pollFds;
     std::string                     _password;
+
+	//temp outgoing-data storage indexed by client descriptor
+	//later Client::_outputBuffer.
+	std::map<int, std::string> _outputBuffers;
     // std::map<int, Client *>         _clients;
     // std::map<std::string, Channel *> _channels;
 };
