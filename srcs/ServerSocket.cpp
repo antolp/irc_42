@@ -1,6 +1,14 @@
 #include "Server.hpp"
 #include "Client.hpp"
 
+//at file scope just to limit endless line and crashing memory (from test 6)
+//(not definitive)
+namespace
+{
+	const std::size_t MAX_PENDING_INPUT =
+		64 * 1024;
+}
+
 //Create, configure, bind, and start the TCP listening socket
 //Every failure closes the temporary descriptor before throwing, so partial startup shouldn't leak a file descriptor
 void Server::createListeningSocket(unsigned short port)
@@ -154,17 +162,27 @@ void Server::removeClient(std::size_t index)
 		<< std::endl;
 }
 
-//Reads currently available bytes from the client represented by the
-//pollfd at index. Returns false when the connection must be removed
+//Reads currently available bytes from Client from index in _pollFds 
+//Returns false when the connection must be removed
+//then extract line and lets server handle it (for now just broadcast it to all clients)
 bool Server::receiveFromClient(std::size_t index)
 {
 	const int fd = _pollFds[index].fd;
+	Client   *client = findClient(fd);
 	char      buffer[1024];
+
+	if (client == NULL)
+		return false;
 
 	//recv() syscall : copies currently available TCP bytes into given buffer 
 	//It is called once for POLLIN event. A non-positive result
 	//ends this client;s errno is not inspected and does not control a retry (unsure)
-	const ssize_t received = recv(fd, buffer, sizeof(buffer), 0);
+	const ssize_t received = recv(
+		fd,
+		buffer,
+		sizeof(buffer),
+		0
+	);
 
 	if (received == 0)
 	{
@@ -186,20 +204,25 @@ bool Server::receiveFromClient(std::size_t index)
 		return false;
 	}
 
-	std::cout
-		<< "Received from fd "
-		<< fd
-		<< ": ";
-
-	std::cout.write(buffer, received);
-	std::cout << std::flush;
-	
-	//give received bytes to dispatch to other clients
-	queueBroadcast(
-		fd,
+	client->appendInput(
 		buffer,
 		static_cast<std::size_t>(received)
 	);
+
+	std::string line;
+
+	while (client->popLine(line))
+		handleCompleteLine(*client, line);
+
+	if (client->getInputSize() > MAX_PENDING_INPUT)
+	{
+		std::cerr
+			<< "Input buffer limit exceeded for fd "
+			<< fd
+			<< std::endl;
+
+		return false;
+	}
 
 	return true;
 }

@@ -49,17 +49,17 @@ private:
 
 
 	//socket
-	void createListeningSocket(unsigned short port);
-	bool receiveFromClient(std::size_t index);
-	void setNonBlocking(int fd);
-	void addPollFd(int fd, short events);
-	void acceptClient();
-	void removeClient(std::size_t index);
-	Client *findClient(int fd);
+	void	createListeningSocket(unsigned short port);
+	bool	receiveFromClient(std::size_t index);
+	void	setNonBlocking(int fd);
+	void	addPollFd(int fd, short events);
+	void	acceptClient();
+	void	removeClient(std::size_t index);
+	Client	*findClient(int fd);
 
-	
-	//send experiment
-	void queueBroadcast(int senderFd, const char* data, std::size_t length);
+	//send
+	void handleCompleteLine(Client &client, const std::string &line);
+	void queueBroadcastLine(int senderFd, const std::string &line);
 	bool flushClientOutput(std::size_t index);
 	
 	// void Server::closeListeningSocket(unsigned short port);
@@ -68,8 +68,6 @@ private:
 	std::vector<struct pollfd> 		_pollFds;
     std::string                     _password;
 
-	//temp outgoing-data storage indexed by client descriptor
-	//later Client::_outputBuffer.
 	std::map<int, std::string> _outputBuffers;
     std::map<int, Client *>         _clients;
     // std::map<std::string, Channel *> _channels;

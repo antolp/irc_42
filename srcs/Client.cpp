@@ -48,3 +48,35 @@ void Client::consumeOutput(std::size_t length)
 	else
 		_outputBuffer.erase(0, length);
 }
+
+void Client::appendInput(
+	const char *data,
+	std::size_t length)
+{
+	_inputBuffer.append(data, length);
+}
+
+std::size_t Client::getInputSize() const
+{
+	return _inputBuffer.size();
+}
+
+//extract line
+bool Client::popLine(std::string &line)
+{
+	const std::size_t newline = _inputBuffer.find('\n');
+
+	if (newline == std::string::npos)
+		return false;
+
+	line = _inputBuffer.substr(0, newline);
+	_inputBuffer.erase(0, newline + 1);
+
+	if (!line.empty()
+		&& line[line.size() - 1] == '\r')
+	{
+		line.erase(line.size() - 1);
+	}
+
+	return true;
+}

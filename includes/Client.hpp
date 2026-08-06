@@ -12,12 +12,17 @@ public:
 
 	int getFd() const;
 
-	//buffer operations
+	//output
 	void		appendOutput(const char *data, std::size_t length);
 	bool		hasOutput() const;
 	const char	*getOutputData() const;
 	std::size_t	getOutputSize() const;
 	void		consumeOutput(std::size_t length);
+
+	//input
+	void		appendInput(const char *data, std::size_t length);
+	std::size_t	getInputSize() const;
+	bool		popLine(std::string &line);
 
 private:
 	Client(const Client &other);
@@ -25,6 +30,7 @@ private:
 
 	int         _fd;
 	std::string _outputBuffer;
+	std::string _inputBuffer;
 };
 
 #endif
