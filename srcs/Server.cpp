@@ -94,14 +94,11 @@ Server::~Server()
 	{
 		delete it->second;
 	}
+	_clients.clear();
 	//destroy channels
 
-	//releases the kernel's listening socket
-	for (std::size_t i = 0; i < _pollFds.size(); ++i)
-	{
-		if (_pollFds[i].fd != -1)
-			close(_pollFds[i].fd);
-	}
+    if (_listenerFd >= 0)
+        close(_listenerFd);
 }
 
 //Configures a socket descriptor in non-blocking mode so an operation
@@ -115,6 +112,8 @@ void Server::setNonBlocking(int fd)
 //for now just to test TCP connections
 //one poll() call to report fd readiness
 //then accept(), recv(), send()
+//POLLHUP at the end because on certain condition the client could be disconnected
+//before sending its final bytes
 void Server::run()
 {
 	while (!_stopRequested)
@@ -156,7 +155,7 @@ void Server::run()
 				continue;
 			}
 
-			if (events & (POLLERR | POLLHUP | POLLNVAL))
+			if (events & (POLLERR | POLLNVAL))
 			{
 				removeClient(i);
 				continue;
@@ -178,6 +177,12 @@ void Server::run()
 					removeClient(i);
 					continue;
 				}
+			}
+
+			if (events & POLLHUP)
+			{
+				removeClient(i);
+				continue;
 			}
 
 			++i;

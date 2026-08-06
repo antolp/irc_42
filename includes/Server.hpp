@@ -60,6 +60,9 @@ private:
 	//send
 	void handleCompleteLine(Client &client, const std::string &line);
 	void queueBroadcastLine(int senderFd, const std::string &line);
+	void queueRaw(Client &client, const char *data, std::size_t length);
+	void queueLine(Client &client, const std::string &line);
+	// void enableWriteInterest(int fd);
 	bool flushClientOutput(std::size_t index);
 	
 	// void Server::closeListeningSocket(unsigned short port);
@@ -68,7 +71,6 @@ private:
 	std::vector<struct pollfd> 		_pollFds;
     std::string                     _password;
 
-	std::map<int, std::string> _outputBuffers;
     std::map<int, Client *>         _clients;
     // std::map<std::string, Channel *> _channels;
 };

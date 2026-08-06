@@ -114,14 +114,10 @@ void Server::acceptClient()
 		client = new Client(clientFd);
 
 		_clients.insert(std::make_pair(clientFd, client));
-		_outputBuffers.insert(
-			std::make_pair(clientFd, std::string())
-		);
 		addPollFd(clientFd, POLLIN);
 	}
 	catch (...)
 	{
-		_outputBuffers.erase(clientFd);
 		_clients.erase(clientFd);
 		if (client != NULL)
 			delete client;
@@ -144,8 +140,7 @@ void Server::removeClient(std::size_t index)
 
 	std::map<int, Client *>::iterator client =
 		_clients.find(fd);
-
-	_outputBuffers.erase(fd);
+	
 	_pollFds.erase(_pollFds.begin() + index);
 
 	if (client != _clients.end())

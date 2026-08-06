@@ -45,9 +45,49 @@ bool Server::flushClientOutput(std::size_t index)
 	return true;
 }
 
-void Server::handleCompleteLine(
-	Client &client,
-	const std::string &line)
+//queue raw bytes to client then enable POLLOUT so it can be sent
+void Server::queueRaw(Client &client, const char *data, std::size_t length)
+{
+	if (length == 0)
+		return;
+
+	client.appendOutput(data, length);
+	for (std::size_t i = 0; i < _pollFds.size(); ++i)
+	{
+		if (_pollFds[i].fd == client.getFd())
+		{
+			_pollFds[i].events |= POLLOUT;
+			return;
+		}
+	}
+}
+
+void Server::queueLine(Client &client, const std::string &line)
+{
+    std::string message = line;
+
+    message += "\r\n";
+    queueRaw(client, message.data(), message.size());
+}
+
+//queues received line for every client except the sender
+//now makes us of the Client class
+//now queues lines instead of raw bytes
+void Server::queueBroadcastLine(int senderFd, const std::string &line)
+{
+	for (std::map<int, Client *>::iterator it = _clients.begin();
+		 it != _clients.end(); ++it)
+	{
+		Client &target = *it->second;
+
+		if (target.getFd() == senderFd)
+			continue;
+
+		queueLine(target, line);
+	}
+}
+
+void Server::handleCompleteLine(Client &client, const std::string &line)
 {
 	std::cout
 		<< "Complete line from fd "
@@ -57,36 +97,4 @@ void Server::handleCompleteLine(
 		<< std::endl;
 
 	queueBroadcastLine(client.getFd(), line);
-}
-
-//queues received line for every client except the sender
-//now makes us of the Client class
-//now queues lines instead of raw bytes
-void Server::queueBroadcastLine(
-	int senderFd,
-	const std::string &line)
-{
-	for (std::size_t i = 0; i < _pollFds.size(); ++i)
-	{
-		const int targetFd = _pollFds[i].fd;
-
-		if (targetFd == _listenerFd
-			|| targetFd == senderFd)
-		{
-			continue;
-		}
-
-		Client *target = findClient(targetFd);
-
-		if (target == NULL)
-			continue;
-
-		target->appendOutput(
-			line.data(),
-			line.size()
-		);
-		target->appendOutput("\r\n", 2);
-
-		_pollFds[i].events |= POLLOUT;
-	}
 }
