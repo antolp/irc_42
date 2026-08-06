@@ -3,20 +3,25 @@ NAME = ircserv
 CXX = c++
 CXXFLAGS = -Wall -Wextra -Werror -std=c++98 -Iincludes
 
-SOURCES =	srcs/main.cpp srcs/Server.cpp srcs/ServerSocket.cpp srcs/ServerSend.cpp \
-			srcs/Client.cpp srcs/Command.cpp
-OBJECTS = $(SOURCES:.cpp=.o)
+OBJ_DIR = .obj
+
+SOURCES =	srcs/main.cpp srcs/Client.cpp srcs/Command.cpp \
+			srcs/Server.cpp srcs/ServerSocket.cpp \
+			srcs/ServerSend.cpp srcs/ServerCommand.cpp
+
+OBJECTS = $(SOURCES:srcs/%.cpp=$(OBJ_DIR)/%.o)
 
 all: $(NAME)
 
 $(NAME): $(OBJECTS)
 	$(CXX) $(CXXFLAGS) $(OBJECTS) -o $(NAME)
 
-%.o: %.cpp
+$(OBJ_DIR)/%.o: srcs/%.cpp
+	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 clean:
-	rm -f $(OBJECTS)
+	rm -rf $(OBJ_DIR)
 
 fclean: clean
 	rm -f $(NAME)

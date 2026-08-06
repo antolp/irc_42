@@ -87,6 +87,8 @@ bool Server::queueLine(Client &client, const std::string &line)
 	std::string message = line;
 
 	message += "\r\n";
+	//same here, should add a debugger
+	std::cout << "\t Queuing message to " << client.getFd() << " : ``" << message;
 	return (queueRaw(client, message.data(), message.size()));
 }
 
@@ -109,21 +111,23 @@ void Server::queueBroadcastLine(int senderFd, const std::string &line)
 	}
 }
 
-//now uses the Command class instead of raw std::string
-void Server::handleCompleteLine(Client &client, const std::string &line)
+void Server::handleCompleteLine(
+	Client &client,
+	const std::string &line)
 {
 	Command command(line);
 
 	if (!command.isValid())
 	{
 		std::cerr
-			<< "Ignoring malformed command from fd "
+			<< "Malformed command from fd "
 			<< client.getFd()
 			<< std::endl;
 
 		return;
 	}
 
+	//should eventually add this to a debug function collection
 	std::cout
 		<< "Command from fd "
 		<< client.getFd()
@@ -150,5 +154,7 @@ void Server::handleCompleteLine(Client &client, const std::string &line)
 	// 	<< line
 	// 	<< std::endl;
 
-	queueBroadcastLine(client.getFd(), line);
+	// queueBroadcastLine(client.getFd(), line);
+	dispatchCommand(client, command);
 }
+

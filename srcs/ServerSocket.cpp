@@ -207,7 +207,12 @@ bool Server::receiveFromClient(std::size_t index)
 	std::string line;
 
 	while (client->popLine(line))
+	{
 		handleCompleteLine(*client, line);
+		//cuts the connection here, no trailing PING after QUIT if one TCP read contains both
+		if (client->isDisconnectRequested())
+			break;
+	}
 
 	if (client->getInputSize() > MAX_PENDING_INPUT)
 	{

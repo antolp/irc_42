@@ -23,10 +23,9 @@
 // //forward declaration
 class Client;
 // class Channel;
-// class Command;
+class Command;
 
-// //Server should owns the listening socket, every Client, every Channel
-
+//Server should owns the listening socket, every Client, every Channel
 class Server
 {
 public:
@@ -34,11 +33,8 @@ public:
 	~Server();
 
 	void run();
-	// static void SignalHandlers();
 
 private:
-	//the server shouldn't be copiable or initilized multiple times for obvious reasons
-	//OCF isn't required anywa
 	Server(const Server &other);
 	Server &operator=(const Server &other);
 
@@ -46,7 +42,6 @@ private:
 	static volatile sig_atomic_t _stopRequested;
 	static void handleSignal(int signalNumber);
 	void installSignalHandlers();
-
 
 	//socket
 	void	createListeningSocket(unsigned short port);
@@ -59,14 +54,19 @@ private:
 	void	removeDisconnectedClients();
 
 	//send
-	void	handleCompleteLine(Client &client, const std::string &line);
 	void	queueBroadcastLine(int senderFd, const std::string &line);
 	bool	queueRaw(Client &client, const char *data, std::size_t length);
-	bool	queueLine(Client &client, const std::string &line);
-	// void enableWriteInterest(int fd);
+	bool	queueLine(Client &client, const std::string &line);	
 	bool	flushClientOutput(std::size_t index);
-	
-	// void Server::closeListeningSocket(unsigned short port);
+
+
+	// Command processing
+	void handleCompleteLine(Client &client, const std::string &line);
+	void dispatchCommand(Client &client, const Command &command);
+	void handlePing(Client &client, const Command &command);
+	void handleQuit(Client &client, const Command &command);
+	void handleCap(Client &client, const Command &command);
+	void handleUnknownCommand(Client &client, const Command &command);
 
 	int                             _listenerFd;
 	std::vector<struct pollfd> 		_pollFds;
