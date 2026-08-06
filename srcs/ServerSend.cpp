@@ -1,5 +1,6 @@
 #include "Server.hpp"
 #include "Client.hpp"
+#include "Command.hpp"
 
 namespace
 {
@@ -108,14 +109,46 @@ void Server::queueBroadcastLine(int senderFd, const std::string &line)
 	}
 }
 
+//now uses the Command class instead of raw std::string
 void Server::handleCompleteLine(Client &client, const std::string &line)
 {
+	Command command(line);
+
+	if (!command.isValid())
+	{
+		std::cerr
+			<< "Ignoring malformed command from fd "
+			<< client.getFd()
+			<< std::endl;
+
+		return;
+	}
+
 	std::cout
-		<< "Complete line from fd "
+		<< "Command from fd "
 		<< client.getFd()
 		<< ": "
-		<< line
-		<< std::endl;
+		<< command.getName();
+
+	const std::vector<std::string> &parameters =
+		command.getParameters();
+
+	for (std::size_t i = 0; i < parameters.size(); ++i)
+	{
+		std::cout
+			<< " ["
+			<< parameters[i]
+			<< "]";
+	}
+
+	std::cout << std::endl;
+
+	// std::cout
+	// 	<< "Complete line from fd "
+	// 	<< client.getFd()
+	// 	<< ": "
+	// 	<< line
+	// 	<< std::endl;
 
 	queueBroadcastLine(client.getFd(), line);
 }
