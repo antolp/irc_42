@@ -1,6 +1,12 @@
 #include "Server.hpp"
 #include "Client.hpp"
 
+namespace
+{
+	const std::size_t MAX_PENDING_OUTPUT =
+		8 * 1024 * 1024;
+}
+
 //sends part of a client's queued output after poll() reports POLLOUT
 //false when client should be disconnected
 //Now using Client output_buffer
@@ -46,10 +52,21 @@ bool Server::flushClientOutput(std::size_t index)
 }
 
 //queue raw bytes to client then enable POLLOUT so it can be sent
-void Server::queueRaw(Client &client, const char *data, std::size_t length)
+//true if all supplied bytes were queued
+bool Server::queueRaw(Client &client, const char *data, std::size_t length)
 {
+	if (client.isDisconnectRequested())
+		return  false;
+
 	if (length == 0)
-		return;
+		return true;
+
+	if (length > MAX_PENDING_OUTPUT 
+		|| client.getOutputSize() > MAX_PENDING_OUTPUT - length)
+	{
+		client.requestDisconnect();
+		return false;
+	}
 
 	client.appendOutput(data, length);
 	for (std::size_t i = 0; i < _pollFds.size(); ++i)
@@ -57,22 +74,26 @@ void Server::queueRaw(Client &client, const char *data, std::size_t length)
 		if (_pollFds[i].fd == client.getFd())
 		{
 			_pollFds[i].events |= POLLOUT;
-			return;
+			return true;
 		}
 	}
+	return true;
 }
 
-void Server::queueLine(Client &client, const std::string &line)
+//true if the complete CRLF-framed line was queued
+bool Server::queueLine(Client &client, const std::string &line)
 {
-    std::string message = line;
+	std::string message = line;
 
-    message += "\r\n";
-    queueRaw(client, message.data(), message.size());
+	message += "\r\n";
+	return (queueRaw(client, message.data(), message.size()));
 }
 
 //queues received line for every client except the sender
 //now makes us of the Client class
 //now queues lines instead of raw bytes
+//ignoring queueline answer for now because one failed client should not prevent
+//delivery to other clients
 void Server::queueBroadcastLine(int senderFd, const std::string &line)
 {
 	for (std::map<int, Client *>::iterator it = _clients.begin();

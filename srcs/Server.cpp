@@ -97,8 +97,8 @@ Server::~Server()
 	_clients.clear();
 	//destroy channels
 
-    if (_listenerFd >= 0)
-        close(_listenerFd);
+	if (_listenerFd >= 0)
+		close(_listenerFd);
 }
 
 //Configures a socket descriptor in non-blocking mode so an operation
@@ -187,9 +187,33 @@ void Server::run()
 
 			++i;
 		}
+		removeDisconnectedClients();
 	}
 
 	std::cout << std::endl
 			  << "Shutdown requested, closing server!"
 			  << std::endl;
+}
+
+void Server::removeDisconnectedClients()
+{
+	for (std::size_t i = 0; i < _pollFds.size();)
+	{
+		if (_pollFds[i].fd == _listenerFd)
+		{
+			++i;
+			continue;
+		}
+
+		Client *client = findClient(_pollFds[i].fd);
+
+		if (client != NULL
+			&& client->isDisconnectRequested())
+		{
+			removeClient(i);
+			continue;
+		}
+
+		++i;
+	}
 }

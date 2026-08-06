@@ -24,6 +24,10 @@ public:
 	std::size_t	getInputSize() const;
 	bool		popLine(std::string &line);
 
+	//state
+	void		requestDisconnect();
+	bool		isDisconnectRequested() const;
+
 private:
 	Client(const Client &other);
 	Client &operator=(const Client &other);
@@ -31,6 +35,7 @@ private:
 	int         _fd;
 	std::string _outputBuffer;
 	std::string _inputBuffer;
+    bool		_disconnectRequested;
 };
 
 #endif

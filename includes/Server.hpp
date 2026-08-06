@@ -30,21 +30,21 @@ class Client;
 class Server
 {
 public:
-    Server(unsigned short port, const std::string &password);
-    ~Server();
+	Server(unsigned short port, const std::string &password);
+	~Server();
 
-    void run();
-    // static void SignalHandlers();
+	void run();
+	// static void SignalHandlers();
 
 private:
 	//the server shouldn't be copiable or initilized multiple times for obvious reasons
 	//OCF isn't required anywa
-    Server(const Server &other);
+	Server(const Server &other);
 	Server &operator=(const Server &other);
 
 	//process signals
-    static volatile sig_atomic_t _stopRequested;
-    static void handleSignal(int signalNumber);
+	static volatile sig_atomic_t _stopRequested;
+	static void handleSignal(int signalNumber);
 	void installSignalHandlers();
 
 
@@ -56,23 +56,24 @@ private:
 	void	acceptClient();
 	void	removeClient(std::size_t index);
 	Client	*findClient(int fd);
+	void	removeDisconnectedClients();
 
 	//send
-	void handleCompleteLine(Client &client, const std::string &line);
-	void queueBroadcastLine(int senderFd, const std::string &line);
-	void queueRaw(Client &client, const char *data, std::size_t length);
-	void queueLine(Client &client, const std::string &line);
+	void	handleCompleteLine(Client &client, const std::string &line);
+	void	queueBroadcastLine(int senderFd, const std::string &line);
+	bool	queueRaw(Client &client, const char *data, std::size_t length);
+	bool	queueLine(Client &client, const std::string &line);
 	// void enableWriteInterest(int fd);
-	bool flushClientOutput(std::size_t index);
+	bool	flushClientOutput(std::size_t index);
 	
 	// void Server::closeListeningSocket(unsigned short port);
 
 	int                             _listenerFd;
 	std::vector<struct pollfd> 		_pollFds;
-    std::string                     _password;
+	std::string                     _password;
 
-    std::map<int, Client *>         _clients;
-    // std::map<std::string, Channel *> _channels;
+	std::map<int, Client *>         _clients;
+	// std::map<std::string, Channel *> _channels;
 };
 
 #endif

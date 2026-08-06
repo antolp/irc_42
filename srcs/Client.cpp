@@ -3,7 +3,8 @@
 #include <unistd.h>
 
 Client::Client(int fd)
-	: _fd(fd)
+	: _fd(fd),
+	_disconnectRequested(false)
 {
 }
 
@@ -16,6 +17,16 @@ Client::~Client()
 int Client::getFd() const
 {
 	return _fd;
+}
+
+void Client::requestDisconnect()
+{
+	_disconnectRequested = true;
+}
+
+bool Client::isDisconnectRequested() const
+{
+	return _disconnectRequested;
 }
 
 //buffer operations
