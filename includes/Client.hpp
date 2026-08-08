@@ -28,14 +28,36 @@ public:
 	void		requestDisconnect();
 	bool		isDisconnectRequested() const;
 
+	//registration
+	bool hasNickname() const;
+	bool isRegistered() const;
+	void setPasswordAccepted();
+	void setNickname(const std::string &nickname);
+	void setUser(const std::string &username, const std::string &realname);
+	void setRegistered(bool registered);
+	bool isRegistrationReady() const;
+
+	const std::string &getNickname() const;
+	const std::string &getUsername() const;
+	const std::string &getRealname() const;
+	std::string getPrefix() const;
+
 private:
 	Client(const Client &other);
 	Client &operator=(const Client &other);
 
-	int         _fd;
-	std::string _outputBuffer;
-	std::string _inputBuffer;
-    bool		_disconnectRequested;
+	std::string	_nickname;
+	std::string	_username;
+	std::string	_realname;
+
+	bool		_passwordAccepted;
+	bool		_hasUser;
+	bool		_registered;
+
+	int			_fd;
+	std::string	_outputBuffer;
+	std::string	_inputBuffer;
+	bool		_disconnectRequested;
 };
 
 #endif

@@ -3,7 +3,10 @@
 #include <unistd.h>
 
 Client::Client(int fd)
-	: _fd(fd),
+	:_passwordAccepted(false),
+	_hasUser(false),
+	_registered(false),
+	_fd(fd),
 	_disconnectRequested(false)
 {
 }
@@ -30,9 +33,7 @@ bool Client::isDisconnectRequested() const
 }
 
 //buffer operations
-void Client::appendOutput(
-	const char *data,
-	std::size_t length)
+void Client::appendOutput(const char *data, std::size_t length)
 {
 	_outputBuffer.append(data, length);
 }
@@ -60,9 +61,7 @@ void Client::consumeOutput(std::size_t length)
 		_outputBuffer.erase(0, length);
 }
 
-void Client::appendInput(
-	const char *data,
-	std::size_t length)
+void Client::appendInput(const char *data, std::size_t length)
 {
 	_inputBuffer.append(data, length);
 }

@@ -5,9 +5,11 @@ CXXFLAGS = -Wall -Wextra -Werror -std=c++98 -Iincludes
 
 OBJ_DIR = .obj
 
-SOURCES =	srcs/main.cpp srcs/Client.cpp srcs/Command.cpp \
+SOURCES =	srcs/main.cpp srcs/Command.cpp \
 			srcs/Server.cpp srcs/ServerSocket.cpp \
-			srcs/ServerSend.cpp srcs/ServerCommand.cpp
+			srcs/ServerSend.cpp srcs/ServerCommand.cpp \
+			srcs/ServerUtils.cpp \
+			srcs/Client.cpp srcs/ClientRegister.cpp
 
 OBJECTS = $(SOURCES:srcs/%.cpp=$(OBJ_DIR)/%.o)
 

@@ -87,7 +87,7 @@ bool Server::queueLine(Client &client, const std::string &line)
 	std::string message = line;
 
 	message += "\r\n";
-	//same here, should add a debugger
+	//needs to be deleted or added to a debug class
 	std::cout << "\t Queuing message to " << client.getFd() << " : ``" << message;
 	return (queueRaw(client, message.data(), message.size()));
 }
@@ -127,12 +127,13 @@ void Server::handleCompleteLine(
 		return;
 	}
 
-	//should eventually add this to a debug function collection
+	//needs to be deleted or added to a debug class
 	std::cout
 		<< "Command from fd "
 		<< client.getFd()
 		<< ": "
-		<< command.getName();
+		<< command.getName()
+		<< "\n\t";
 
 	const std::vector<std::string> &parameters =
 		command.getParameters();
@@ -144,6 +145,7 @@ void Server::handleCompleteLine(
 			<< parameters[i]
 			<< "]";
 	}
+	//
 
 	std::cout << std::endl;
 
@@ -158,3 +160,23 @@ void Server::handleCompleteLine(
 	dispatchCommand(client, command);
 }
 
+//helper to send server answers that have a numeric code
+bool Server::sendNumeric( Client &client, const std::string &numeric, 
+	const std::string &arguments)
+{
+	std::string replyTarget;
+	if (client.hasNickname())
+		replyTarget = client.getNickname();
+	else 
+		replyTarget = "*";
+	std::string reply =
+		":ircserv "
+		+ numeric
+		+ " "
+		+ replyTarget;
+
+	if (!arguments.empty())
+		reply += " " + arguments;
+
+	return queueLine(client, reply);
+}

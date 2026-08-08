@@ -12,6 +12,15 @@ namespace
 
 void Server::dispatchCommand(Client &client, const Command &command)
 {
+
+	// //needs to be deleted or added to a debug class
+	// std::cout << "\t dispatching command :\n\t\t" << command.getName();
+	// const std::vector<std::string> &parameters = command.getParameters();
+	// for (std::size_t i = 0; i < parameters.size(); ++i)
+	// 	std::cout << parameters[i] << ",\t";
+	// std::cout << std::endl;
+	// //
+
 	const std::string &name = command.getName();
 
 	if (name == "PING")
@@ -20,7 +29,13 @@ void Server::dispatchCommand(Client &client, const Command &command)
 		handleQuit(client, command);
 	else if (name == "CAP")
 		handleCap(client, command);
-	else
+	else if (name == "PASS")
+		handlePass(client, command);
+	else if (name == "USER")
+		handleUser(client, command);
+	else if (name == "NICK")
+		handleNick(client, command);
+		else
 		handleUnknownCommand(client, command);
 }
 
@@ -53,8 +68,7 @@ void Server::handlePing(
 		return;
 	}
 
-	const std::vector<std::string> &parameters =
-		command.getParameters();
+	const std::vector<std::string> &parameters = command.getParameters();
 
 	queueLine(
 		client,
@@ -65,6 +79,8 @@ void Server::handlePing(
 			+ " :"
 			+ parameters[0]
 	);
+	//needs to be deleted or added to a debug class
+	std::cout << command.getName() << " successful" << std::endl;
 }
 
 //QUIT
@@ -79,13 +95,10 @@ void Server::handleQuit(
 }
 
 //CAP
-//not mandatory and not definitive but clients seem to refuse connections
-//when the standard response is not given
 //clients send "CAP LS 302" at connection and require a normal answers
 void Server::handleCap(Client &client, const Command &command)
 {
-	const std::vector<std::string> &parameters =
-		command.getParameters();
+	const std::vector<std::string> &parameters = command.getParameters();
 
 	if (parameters.empty())
 		return;
@@ -94,7 +107,7 @@ void Server::handleCap(Client &client, const Command &command)
 	{
 		queueLine(
 			client,
-			":ircserv CAP * LS : (lol)"
+			":ircserv CAP * LS : (?)"
 		);
 		return;
 	}
@@ -111,4 +124,155 @@ void Server::handleCap(Client &client, const Command &command)
 			":ircserv CAP * NAK : (?)" + requested
 		);
 	}
+	//needs to be deleted or added to a debug class
+	std::cout << command.getName() << " successful" << std::endl;
+}
+
+//PASS
+//	required for registration
+//client : "PASS <password>"
+//lets client supply the correct password
+//on success no answer
+void Server::handlePass(Client &client, const Command &command)
+{
+	if (client.isRegistered())
+	{
+		sendNumeric(
+			client,
+			"462",
+			":You may not reregister"
+		);
+		return;
+	}
+
+	if (command.getParameterCount() < 1)
+	{
+		sendNumeric(
+			client,
+			"461",
+			"PASS :Not enough parameters"
+		);
+		return;
+	}
+
+	if (command.getParameters()[0] != _password)
+	{
+		sendNumeric(
+			client,
+			"464",
+			":Password incorrect"
+		);
+		return;
+	}
+
+	client.setPasswordAccepted();
+	tryCompleteRegistration(client);
+	//needs to be deleted or added to a debug class
+	std::cout << command.getName() << " successful" << std::endl;
+}
+
+//NICK
+//	required for registration
+//client : "NICK <nickname>"
+//lets client provide a nickname the server should use
+//that nickname can be reset by client
+void Server::handleNick(Client &client, const Command &command)
+{
+	if (command.getParameterCount() < 1)
+	{
+		sendNumeric(
+			client,
+			"431",
+			":No nickname given"
+		);
+		return;
+	}
+
+	const std::string &nickname =command.getParameters()[0];
+	if (!isValidNickname(nickname))
+	{
+		sendNumeric(
+			client,
+			"432",
+			nickname + " :Erroneous nickname"
+		);
+		return;
+	}
+
+	const std::string key = nickname;
+	std::map<std::string, int>::iterator existing = _nicknameIndex.find(key);
+	
+	if (existing != _nicknameIndex.end() && existing->second != client.getFd())
+	{
+		sendNumeric(
+			client,
+			"433",
+			nickname + " :Nickname is already in use"
+		);
+		return;
+	}
+	if (client.hasNickname())
+	{
+		_nicknameIndex.erase(client.getNickname());
+	}
+
+	client.setNickname(nickname);
+	_nicknameIndex[key] = client.getFd();
+
+	tryCompleteRegistration(client);
+	//needs to be deleted or added to a debug class
+	std::cout << command.getName() << " successful" << std::endl;
+}
+
+//USER
+//	required for registration
+//client : "USER <username> <mode> <unused> :<realname>"
+//we don't use mode nor unused
+//lets client set its username, and optionnaly its IRL name
+void Server::handleUser(Client &client, const Command &command)
+{
+	if (client.isRegistered())
+	{
+		sendNumeric(
+			client,
+			"462",
+			":You may not reregister"
+		);
+		return;
+	}
+
+	if (command.getParameterCount() < 4)
+	{
+		sendNumeric(
+			client,
+			"461",
+			"USER :Not enough parameters"
+		);
+		return;
+	}
+
+	const std::vector<std::string> &parameters = command.getParameters();
+	client.setUser(parameters[0], parameters[3]);
+	tryCompleteRegistration(client);
+	//needs to be deleted or added to a debug class
+	std::cout << command.getName() << " successful" << std::endl;
+}
+
+void Server::tryCompleteRegistration(Client &client)
+{
+	if (client.isRegistered())
+		return;
+
+	if (!client.isRegistrationReady())
+		return;
+
+	client.setRegistered(true);
+	SendWelcome(client);
+
+	//needs to be deleted or added to a debug class
+	std::cout << "\t User " 
+		<< client.hasNickname() 
+		<< "(" + client.getUsername() + ")"
+		<< " fd : " << client.getFd()
+		<<  "has successfully registered\n";
 }
