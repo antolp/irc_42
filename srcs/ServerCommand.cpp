@@ -35,7 +35,9 @@ void Server::dispatchCommand(Client &client, const Command &command)
 		handleUser(client, command);
 	else if (name == "NICK")
 		handleNick(client, command);
-		else
+	else if (name == "PRIVMSG")
+		handlePrivmsg(client, command);
+	else
 		handleUnknownCommand(client, command);
 }
 
@@ -220,8 +222,6 @@ void Server::handleNick(Client &client, const Command &command)
 	_nicknameIndex[key] = client.getFd();
 
 	tryCompleteRegistration(client);
-	//needs to be deleted or added to a debug class
-	std::cout << command.getName() << " successful" << std::endl;
 }
 
 //USER
@@ -275,4 +275,70 @@ void Server::tryCompleteRegistration(Client &client)
 		<< "(" + client.getUsername() + ")"
 		<< " fd : " << client.getFd()
 		<<  "has successfully registered\n";
+}
+
+//PRIVMSG
+//	(for now no channels)
+//client : "PRIVMSG <target> <text to be sent>"
+//server : ":user!userh@localhost PRIVMSG <target> <text to be sent>"
+//lets user send some message, target can be both a user or a channel !!
+void Server::handlePrivmsg(Client &client, const Command &command)
+{
+	if (!client.isRegistered())
+	{
+		sendNumeric(
+			client,
+			"451",
+			":You have not registered"
+		);
+		return;
+	}
+
+	const std::vector<std::string> &parameters =
+		command.getParameters();
+
+	if (parameters.empty())
+	{
+		sendNumeric(
+			client,
+			"411",
+			":No recipient given (PRIVMSG)"
+		);
+		return;
+	}
+
+	if (parameters.size() < 2)
+	{
+		sendNumeric(
+			client,
+			"412",
+			":No text to send"
+		);
+		return;
+	}
+
+	Client *target =
+		findClientByNickname(parameters[0]);
+
+	if (target == NULL)
+	{
+		sendNumeric(
+			client,
+			"401",
+			parameters[0] + " :No such nick/channel"
+		);
+		return;
+	}
+
+	std::string message =
+		":"
+		+ client.getPrefix()
+		+ " PRIVMSG "
+		+ target->getNickname()
+		+ " :"
+		+ parameters[1];
+
+	queueLine(*target, message);
+	//needs to be deleted or added to a debug class
+	std::cout << command.getName() << " successful" << std::endl;
 }

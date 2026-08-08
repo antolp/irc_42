@@ -69,6 +69,7 @@ private:
 	void handlePass(Client &client, const Command &command);
 	void handleNick(Client &client, const Command &command);
 	void handleUser(Client &client, const Command &command);
+	void handlePrivmsg(Client &client, const Command &command);
 	void handleUnknownCommand(Client &client, const Command &command);
 
 	//Utilities

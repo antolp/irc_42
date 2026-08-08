@@ -43,11 +43,10 @@ void	Server::SendWelcome(Client &client)
 	sendNumeric(client, "001", ":Welcome to this really awesome IRC server !" + client.getPrefix());
 	sendNumeric(client, "002", ":This server has been running for (idk)");
 	sendNumeric(client, "003", ":here's a nice snail in ASCII art :");
-	sendNumeric(client, "004", ":   ───▄▄▄");
-	sendNumeric(client, "005", ":─▄▀░▄░▀▄");
-	sendNumeric(client, "006", ":─█░█▄▀░█");
-	sendNumeric(client, "007", ":─█░▀▄▄▀█▄█▄▀3");
-	sendNumeric(client, "008", ":▄▄█▄▄▄▄███▀");
+	sendNumeric(client, "004", ":   ▄▄ ▄████▄▐▄▄▄▌");
+	sendNumeric(client, "005", ":  ▐  ████▀███▄█▄▌");
+	sendNumeric(client, "006", ":▐ ▌  █▀▌  ▐▀▌▀█▀ ");
+	sendNumeric(client, "007", ": ▀   ▌ ▌  ▐ ▌    ");
+	sendNumeric(client, "008", ":     █ █  ▐▌█    ");
 	sendNumeric(client, "376", ":End of MOTD command");
-
 }
