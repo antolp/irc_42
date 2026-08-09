@@ -39,6 +39,8 @@ void Server::createListeningSocket(unsigned short port)
 		throw std::runtime_error("fcntl() failed on listening socket");
 	}
 
+	//htonl host to network long
+	//htons host tO network short
 	std::memset(&address, 0, sizeof(address));
 	address.sin_family = AF_INET;
 	address.sin_addr.s_addr = htonl(INADDR_ANY);

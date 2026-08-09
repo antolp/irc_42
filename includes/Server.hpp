@@ -22,7 +22,7 @@
 
 // //forward declaration
 class Client;
-// class Channel;
+class Channel;
 class Command;
 
 //Server should owns the listening socket, every Client, every Channel
@@ -85,7 +85,7 @@ private:
 	std::map<int, Client *>         _clients;
 	std::map<std::string, int>		_nicknameIndex;
 
-	// std::map<std::string, Channel *> _channels;
+	std::map<std::string, Channel *> _channels;
 };
 
 #endif

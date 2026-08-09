@@ -1,79 +1,8 @@
 #include "Server.hpp"
-
 #include "Client.hpp"
+#include "Channel.hpp"
 
 volatile sig_atomic_t Server::_stopRequested = 0;
-
-//function NEEDS to be prototyped as static in header
-//else its type goes from "void (*)(int)" to "void (Server::*)(int)"
-void Server::handleSignal(int signalNumber)
-{
-	(void)signalNumber;
-	_stopRequested = 1;
-}
-
-//Install small process singal handlers before any Server instance is ran
-//SIGPIPE is ignored because it fucks with send()
-void Server::installSignalHandlers()
-{
-	struct sigaction action;
-	struct sigaction ignoreAction;
-
-	std::memset(&action, 0, sizeof(action));
-	action.sa_handler = &Server::handleSignal;
-	sigemptyset(&action.sa_mask);
-	action.sa_flags = 0;
-
-	if (sigaction(SIGINT, &action, NULL) == -1)
-		throw std::runtime_error("sigaction() failed for SIGINT");
-
-	if (sigaction(SIGTERM, &action, NULL) == -1)
-		throw std::runtime_error("sigaction() failed for SIGTERM");
-
-	std::memset(&ignoreAction, 0, sizeof(ignoreAction));
-	ignoreAction.sa_handler = SIG_IGN;
-	sigemptyset(&ignoreAction.sa_mask);
-	ignoreAction.sa_flags = 0;
-
-	if (sigaction(SIGPIPE, &ignoreAction, NULL) == -1)
-		throw std::runtime_error("sigaction() failed for SIGPIPE");
-}
-
-//returns Client * from FD
-Client *Server::findClient(int fd)
-{
-	std::map<int, Client *>::iterator it =
-		_clients.find(fd);
-
-	if (it == _clients.end())
-		return NULL;
-
-	return it->second;
-}
-
-//Registers a descriptor and the events it should watch in the collection
-//passed to poll(). revents will later contain the events reported by poll()
-void Server::addPollFd(int fd, short events)
-{
-	//DEBUG
-	std::cout << "adding " << fd << " " << events << " at addPollFd" << std::endl;
-
-	for (std::size_t i = 0; i < _pollFds.size(); ++i)
-	{
-		if (_pollFds[i].fd == fd)
-			throw std::runtime_error(
-				"attempted to register the same fd twice !!!"
-			);
-	}
-	
-	struct pollfd descriptor;
-
-	descriptor.fd = fd;
-	descriptor.events = events;
-	descriptor.revents = 0;
-
-	_pollFds.push_back(descriptor);
-}
 
 Server::Server(unsigned short port, const std::string &password)
 	: _listenerFd(-1),
