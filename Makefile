@@ -2,6 +2,7 @@ NAME = ircserv
 
 CXX = c++
 CXXFLAGS = -Wall -Wextra -Werror -std=c++98 -Iincludes
+# CXXFLAGS = -Wall -Wextra -Werror -std=c++98 -Iincludes -g -O0 -fsanitize=address -fno-omit-frame-pointer
 
 OBJ_DIR = .obj
 
