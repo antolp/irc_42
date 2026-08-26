@@ -96,6 +96,7 @@ void Server::handlePing(
 
 //QUIT
 //lets clients quit the server, ending the connection
+//quit message is done by Server at cleanup
 void Server::handleQuit(Client &client, const Command &command)
 {
 	std::string reason = "Client Quit";
@@ -281,14 +282,13 @@ void Server::tryCompleteRegistration(Client &client)
 
 	//needs to be deleted or added to a debug class
 	std::cout << "\t User " 
-		<< client.hasNickname() 
+		<< client.getNickname() 
 		<< "(" + client.getUsername() + ")"
 		<< " fd : " << client.getFd()
 		<<  "has successfully registered\n";
 }
 
 //PRIVMSG
-//	(for now no channels)
 //client : "PRIVMSG <target> <text to be sent>"
 //server : ":user!userh@localhost PRIVMSG <target> <text to be sent>"
 //lets user send some message, target can be both a user or a channel !!
@@ -627,12 +627,6 @@ void Server::handleKick(Client &client, const Command &command)
 
 	broadcastToChannel(*channel, kickMessage);
 	removeMemberFromChannel(channel, target->getFd());
-
-	if (channel->empty())
-	{
-		_channels.erase(channelName);
-		delete channel;
-	}
 	std::cout << command.getName() << " successful" << std::endl;
 }
 

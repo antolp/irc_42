@@ -135,32 +135,31 @@ void Server::acceptClient()
 }
 
 //closes the client descriptor at index and removes its pollfd entry
+//then clean client from IRC (channels, invite, nick ETC)
 //then delete client
 void Server::removeClient(std::size_t index)
 {
-	const int fd = _pollFds[index].fd;
+    const int fd = _pollFds[index].fd;
 
-	std::map<int, Client *>::iterator client = _clients.find(fd);
-	
-	_pollFds.erase(_pollFds.begin() + index);
+    std::map<int, Client *>::iterator client =
+        _clients.find(fd);
 
-	if (client != _clients.end())
-	{
-		Client *removed = client->second;
+    if (client != _clients.end())
+    {
+        Client *removed = client->second;
 
-		//on next commit : clean IRC state while Client data and fd are still valid
-		cleanupClientIrcState(*removed);
+        cleanupClientIrcState(*removed);
 
-		_clients.erase(client);
-		delete removed;
-	}
+        _clients.erase(client);
+        delete removed;
+    }
 
-	_pollFds.erase(_pollFds.begin() + index);
+    _pollFds.erase(_pollFds.begin() + index);
 
-	std::cout
-		<< "Removed client fd "
-		<< fd
-		<< std::endl;
+    std::cout
+        << "Removed client fd "
+        << fd
+        << std::endl;
 }
 
 //Reads currently available bytes from Client from index in _pollFds 
