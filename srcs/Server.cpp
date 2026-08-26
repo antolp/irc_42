@@ -146,3 +146,26 @@ void Server::removeDisconnectedClients()
 		++i;
 	}
 }
+
+
+void Server::cleanupClientIrcState(Client &client)
+{
+	(void)client;
+}
+
+//shared one-channel membership removal for KICK/PART
+//caller must NOT use channel after this call if it was the last member
+//(dangling pointer)
+void Server::removeMemberFromChannel(Channel *channel, int fd)
+{
+	if (channel == NULL)
+		return;
+
+	channel->removeMember(fd);
+
+	if (!channel->empty())
+		return;
+
+	_channels.erase(channel->getName());
+	delete channel;
+}

@@ -140,8 +140,7 @@ void Server::removeClient(std::size_t index)
 {
 	const int fd = _pollFds[index].fd;
 
-	std::map<int, Client *>::iterator client =
-		_clients.find(fd);
+	std::map<int, Client *>::iterator client = _clients.find(fd);
 	
 	_pollFds.erase(_pollFds.begin() + index);
 
@@ -149,9 +148,14 @@ void Server::removeClient(std::size_t index)
 	{
 		Client *removed = client->second;
 
+		//on next commit : clean IRC state while Client data and fd are still valid
+		cleanupClientIrcState(*removed);
+
 		_clients.erase(client);
 		delete removed;
 	}
+
+	_pollFds.erase(_pollFds.begin() + index);
 
 	std::cout
 		<< "Removed client fd "

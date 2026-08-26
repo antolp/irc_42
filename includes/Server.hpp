@@ -79,6 +79,8 @@ private:
 	//Utilities
 	Client *findClientByNickname(const std::string &nickname);
 	Channel *findChannel(const std::string &name);
+	void	removeMemberFromChannel(Channel *channel, int fd);
+	void	cleanupClientIrcState(Client &client);
 	void	tryCompleteRegistration(Client &client);
 	bool	isValidNickname(const std::string &nickname) const;
 	void	SendWelcome(Client &client);

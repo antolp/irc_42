@@ -96,13 +96,14 @@ void Server::handlePing(
 
 //QUIT
 //lets clients quit the server, ending the connection
-void Server::handleQuit(
-	Client &client,
-	const Command &command)
+void Server::handleQuit(Client &client, const Command &command)
 {
-	(void)command;
+	std::string reason = "Client Quit";
 
-	client.requestDisconnect();
+	if (command.getParameterCount() >= 1)
+		reason = command.getParameters()[0];
+
+	client.requestDisconnect(reason);
 }
 
 //CAP
@@ -625,7 +626,7 @@ void Server::handleKick(Client &client, const Command &command)
 		+ reason;
 
 	broadcastToChannel(*channel, kickMessage);
-	channel->removeMember(target->getFd());
+	removeMemberFromChannel(channel, target->getFd());
 
 	if (channel->empty())
 	{

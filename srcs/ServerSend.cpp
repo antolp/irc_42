@@ -39,6 +39,7 @@ bool Server::flushClientOutput(std::size_t index)
 			<< fd
 			<< std::endl;
 
+		client->requestDisconnect("Write error");
 		return false;
 	}
 
@@ -65,7 +66,7 @@ bool Server::queueRaw(Client &client, const char *data, std::size_t length)
 	if (length > MAX_PENDING_OUTPUT 
 		|| client.getOutputSize() > MAX_PENDING_OUTPUT - length)
 	{
-		client.requestDisconnect();
+		client.requestDisconnect("Exceeded Client OutputBuffer");
 		return false;
 	}
 

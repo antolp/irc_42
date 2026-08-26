@@ -25,8 +25,9 @@ public:
 	bool		popLine(std::string &line);
 
 	//state
-	void		requestDisconnect();
+	void		requestDisconnect(std::string reason);
 	bool		isDisconnectRequested() const;
+	std::string	getDisconnectReason() const;
 
 	//registration
 	bool hasNickname() const;
@@ -58,6 +59,7 @@ private:
 	std::string	_outputBuffer;
 	std::string	_inputBuffer;
 	bool		_disconnectRequested;
+	std::string	_disconnectReason;
 };
 
 #endif

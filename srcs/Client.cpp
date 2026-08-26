@@ -22,8 +22,9 @@ int Client::getFd() const
 	return _fd;
 }
 
-void Client::requestDisconnect()
+void Client::requestDisconnect(std::string reason)
 {
+	_disconnectReason = reason;
 	_disconnectRequested = true;
 }
 
@@ -31,6 +32,12 @@ bool Client::isDisconnectRequested() const
 {
 	return _disconnectRequested;
 }
+
+std::string Client::getDisconnectReason() const
+{
+	return _disconnectReason;
+}
+
 
 //buffer operations
 void Client::appendOutput(const char *data, std::size_t length)
