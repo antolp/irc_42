@@ -6,12 +6,31 @@ CXXFLAGS = -Wall -Wextra -Werror -std=c++98 -Iincludes
 
 OBJ_DIR = .obj
 
-SOURCES =	srcs/main.cpp srcs/Command.cpp \
-		srcs/Server.cpp srcs/ServerSocket.cpp \
-		srcs/ServerSend.cpp srcs/ServerCommand.cpp \
-		srcs/ServerUtils.cpp \
-		srcs/Client.cpp srcs/ClientRegister.cpp \
-		srcs/Channel.cpp
+SERVER_SOURCES = srcs/Server/Server.cpp \
+                 srcs/Server/ServerCommand.cpp \
+                 srcs/Server/ServerSend.cpp \
+                 srcs/Server/ServerSocket.cpp \
+                 srcs/Server/ServerUtils.cpp
+
+COMMAND_SOURCES = srcs/Command/Command.cpp \
+                  srcs/Command/Ping.cpp \
+                  srcs/Command/Quit.cpp \
+                  srcs/Command/Cap.cpp \
+                  srcs/Command/Pass.cpp \
+                  srcs/Command/Nick.cpp \
+                  srcs/Command/User.cpp \
+                  srcs/Command/Privmsg.cpp \
+                  srcs/Command/Join.cpp \
+                  srcs/Command/Topic.cpp \
+                  srcs/Command/Kick.cpp \
+                  srcs/Command/Invite.cpp
+
+CORE_SOURCES = srcs/main.cpp \
+               srcs/Client.cpp \
+               srcs/ClientRegister.cpp \
+               srcs/Channel.cpp
+
+SOURCES = $(CORE_SOURCES) $(SERVER_SOURCES) $(COMMAND_SOURCES)
 
 OBJECTS = $(SOURCES:srcs/%.cpp=$(OBJ_DIR)/%.o)
 
