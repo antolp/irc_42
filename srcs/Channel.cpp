@@ -14,7 +14,13 @@ void Channel::Member::setOperator(bool enabled)
 // Channel
 Channel::Channel(const std::string &name)
 	: _name(name),
-	  _topic("")
+	  _topic(""),
+	  _inviteOnly(false),
+	  _topicRestricted(false),
+	  _hasKey(false),
+	  _key(""),
+	  _hasUserLimit(false),
+	  _userLimit(0)
 {
 }
 

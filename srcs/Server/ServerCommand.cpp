@@ -41,6 +41,8 @@ void Server::dispatchCommand(Client &client, const Command &command)
 		handleKick(client, command);
 	else if (name == "INVITE")
 		handleInvite(client, command);
+	else if (name == "MODE")
+		handleMode(client, command);
 	else
 		handleUnknownCommand(client, command);
 }

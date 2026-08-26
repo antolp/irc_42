@@ -55,9 +55,39 @@ public:
 	void removeInvite(const std::string &nickname);
 	bool isInvited(const std::string &nickname) const;
 
+	//MODE +i : invite-only
+	bool isInviteOnly() const;
+	void setInviteOnly(bool enabled);
+
+	//MODE +t : topic restricted to operators
+	bool isTopicRestricted() const;
+	void setTopicRestricted(bool enabled);
+
+	//MODE +k : channel key
+	bool hasKey() const;
+	const std::string &getKey() const;
+	void setKey(const std::string &key);
+	void removeKey();
+
+	//MODE +l : user limit
+	bool hasUserLimit() const;
+	std::size_t getUserLimit() const;
+	void setUserLimit(std::size_t limit);
+	void removeUserLimit();
+
 private:
 	std::string _name;
 	std::string _topic;
 	MemberMap   _members;
 	std::set<std::string> _invitedUsers;
+
+	bool _inviteOnly;
+	bool _topicRestricted;
+
+	bool _hasKey;
+	std::string _key;
+
+	bool _hasUserLimit;
+	std::size_t _userLimit;
+
 };

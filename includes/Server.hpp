@@ -74,6 +74,7 @@ private:
 	void handleTopic(Client &client, const Command &command);
 	void handleKick(Client &client, const Command &command);
 	void handleInvite(Client &client, const Command &command);
+	void handleMode(Client &client, const Command &command);
 	void handleUnknownCommand(Client &client, const Command &command);
 
 	//Utilities
