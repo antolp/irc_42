@@ -89,28 +89,10 @@ bool Server::queueLine(Client &client, const std::string &line)
 
 	message += "\r\n";
 	//needs to be deleted or added to a debug class
-	std::cout << "\t Queuing message to " << client.getFd() << " : ``" << message;
+	// std::cout << "\t Queuing message to " << client.getFd() << " : ``" << message;
 	return (queueRaw(client, message.data(), message.size()));
 }
 
-//queues received line for every client except the sender
-//now makes us of the Client class
-//now queues lines instead of raw bytes
-//ignoring queueline answer for now because one failed client should not prevent
-//delivery to other clients
-void Server::queueBroadcastLine(int senderFd, const std::string &line)
-{
-	for (std::map<int, Client *>::iterator it = _clients.begin();
-		 it != _clients.end(); ++it)
-	{
-		Client &target = *it->second;
-
-		if (target.getFd() == senderFd)
-			continue;
-
-		queueLine(target, line);
-	}
-}
 
 void Server::handleCompleteLine(Client &client, const std::string &line)
 {
@@ -126,36 +108,30 @@ void Server::handleCompleteLine(Client &client, const std::string &line)
 		return;
 	}
 
-	//needs to be deleted or added to a debug class
-	std::cout
-		<< "Command from fd "
-		<< client.getFd()
-		<< ": "
-		<< command.getName()
-		<< "\n\t";
-
-	const std::vector<std::string> &parameters =
-		command.getParameters();
-
-	for (std::size_t i = 0; i < parameters.size(); ++i)
+	if (this->_debug)
 	{
+		const std::vector<std::string> &parameters =
+			command.getParameters();
 		std::cout
-			<< " ["
-			<< parameters[i]
-			<< "]";
+			<< "Command from fd "
+			<< client.getFd()
+			<< ": "
+			<< command.getName()
+			<< "\n\t";
+
+		for (std::size_t i = 0; i < parameters.size(); ++i)
+		{
+			std::cout << " [" << parameters[i] << "]";
+		}
+		
+		std::cout << std::endl;
+		std::cout
+			<< "Complete line from fd "
+			<< client.getFd()
+			<< ": "
+			<< line
+			<< std::endl;
 	}
-	//
-
-	std::cout << std::endl;
-
-	// std::cout
-	// 	<< "Complete line from fd "
-	// 	<< client.getFd()
-	// 	<< ": "
-	// 	<< line
-	// 	<< std::endl;
-
-	// queueBroadcastLine(client.getFd(), line);
 	dispatchCommand(client, command);
 }
 

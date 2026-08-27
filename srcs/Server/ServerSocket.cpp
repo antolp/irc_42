@@ -64,13 +64,15 @@ void Server::createListeningSocket(unsigned short port)
 	}
 	_listenerFd = fd;
 	
-	//for now no client class
 	addPollFd(_listenerFd, POLLIN);
 
-	std::cout
-		<< "Listening on 0.0.0.0:" 
-		<< port 
-		<< std::endl;
+	if (_debug)
+	{
+		std::cout
+			<< "Listening on 0.0.0.0:" 
+			<< port 
+			<< std::endl;		
+	}
 }
 
 

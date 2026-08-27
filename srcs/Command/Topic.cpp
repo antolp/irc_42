@@ -95,6 +95,6 @@ void Server::handleTopic(Client &client, const Command &command)
 			+ " TOPIC " + channelName 
 			+ " :" + newTopic;
 	broadcastToChannel(*channel, topicMessage);
-	std::cout << command.getName() << " successful" << std::endl;
+	// std::cout << command.getName() << " successful" << std::endl;
 }
 

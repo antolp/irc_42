@@ -81,7 +81,7 @@ void Server::handlePrivmsg(Client &client, const Command &command)
 			+ parameters[1];
 
 		broadcastToChannel(*channel, message, client.getFd());
-		std::cout << command.getName() << " successful" << std::endl;
+		// std::cout << command.getName() << " successful" << std::endl;
 		return;
 	}
 
@@ -108,6 +108,7 @@ void Server::handlePrivmsg(Client &client, const Command &command)
 		+ parameters[1];
 
 	queueLine(*target, message);
-	std::cout << command.getName() << " successful" << std::endl;
+	if (_debug)
+		std::cout << command.getName() << " successful" << std::endl;
 }
 

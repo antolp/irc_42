@@ -71,7 +71,6 @@ private:
 	void	removeDisconnectedClients();
 
 	//send
-	void	queueBroadcastLine(int senderFd, const std::string &line);
 	bool	queueRaw(Client &client, const char *data, std::size_t length);
 	bool	queueLine(Client &client, const std::string &line);	
 	bool	flushClientOutput(std::size_t index);
@@ -120,6 +119,7 @@ private:
 	std::map<std::string, int>	_nicknameIndex;
 
 	std::map<std::string, Channel *> _channels;
+	bool 							_debug;
 };
 
 #endif

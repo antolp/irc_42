@@ -42,8 +42,8 @@ void Server::installSignalHandlers()
 //passed to poll(). revents will later contain the events reported by poll()
 void Server::addPollFd(int fd, short events)
 {
-	//DEBUG
-	std::cout << "adding " << fd << " " << events << " at addPollFd" << std::endl;
+	if (_debug)
+		std::cout << "adding " << fd << " " << events << " at addPollFd" << std::endl;
 
 	for (std::size_t i = 0; i < _pollFds.size(); ++i)
 	{

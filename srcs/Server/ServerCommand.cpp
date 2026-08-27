@@ -49,13 +49,15 @@ void Server::dispatchCommand(Client &client, const Command &command)
 
 void Server::handleUnknownCommand(Client &client, const Command &command)
 {
-	//needs to be deleted or added to a debug class
+	if (_debug)
+	{
 	std::cout
 		<< "Unknown command from fd "
 		<< client.getFd()
 		<< ": "
 		<< command.getName()
 		<< std::endl;
+	}
 	
 	sendNumeric(
 		client,
@@ -75,10 +77,12 @@ void Server::tryCompleteRegistration(Client &client)
 	client.setRegistered(true);
 	SendWelcome(client);
 
-	//needs to be deleted or added to a debug class
+	if (this->_debug)
+	{
 	std::cout << "\t User " 
 		<< client.getNickname() 
 		<< "(" + client.getUsername() + ")"
 		<< " fd : " << client.getFd()
 		<<  "has successfully registered\n";
+	}
 }

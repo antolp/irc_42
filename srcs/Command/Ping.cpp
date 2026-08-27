@@ -40,5 +40,6 @@ void Server::handlePing(
 			+ parameters[0]
 	);
 	//needs to be deleted or added to a debug class
-	std::cout << command.getName() << " successful" << std::endl;
+	if (_debug)
+		std::cout << command.getName() << " successful" << std::endl;
 }

@@ -46,6 +46,7 @@ void Server::handlePass(Client &client, const Command &command)
 	client.setPasswordAccepted();
 	tryCompleteRegistration(client);
 	//needs to be deleted or added to a debug class
-	std::cout << command.getName() << " successful" << std::endl;
+	if (_debug)
+		std::cout << command.getName() << " successful" << std::endl;
 }
 

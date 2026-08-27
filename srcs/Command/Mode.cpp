@@ -37,9 +37,9 @@ namespace
 
 		if (modeString.empty())
 		{
-			std::cout
-				<< "MODE rejected: empty mode string"
-				<< std::endl;
+			// std::cout
+			// 	<< "MODE rejected: empty mode string"
+			// 	<< std::endl;
 			return false;
 		}
 
@@ -67,11 +67,11 @@ namespace
 
 			if (!signSeen)
 			{
-				std::cout
-					<< "MODE rejected: mode '"
-					<< character
-					<< "' has no preceding + or -"
-					<< std::endl;
+				// std::cout
+				// 	<< "MODE rejected: mode '"
+				// 	<< character
+				// 	<< "' has no preceding + or -"
+				// 	<< std::endl;
 				return false;
 			}
 
@@ -81,12 +81,12 @@ namespace
 			{
 				if (argumentIndex >= parameters.size())
 				{
-					std::cout
-						<< "MODE rejected: mode "
-						<< (adding ? '+' : '-')
-						<< character
-						<< " requires an argument"
-						<< std::endl;
+					// std::cout
+					// 	<< "MODE rejected: mode "
+					// 	<< (adding ? '+' : '-')
+					// 	<< character
+					// 	<< " requires an argument"
+					// 	<< std::endl;
 					return false;
 				}
 
@@ -100,9 +100,7 @@ namespace
 
 		if (changes.empty())
 		{
-			std::cout
-				<< "MODE rejected: no modes in mode string"
-				<< std::endl;
+			// std::cout << "MODE rejected: no modes in mode string" << std::endl;
 			return false;
 		}
 
@@ -184,4 +182,6 @@ void Server::handleMode(Client &client, const Command &command)
 
 	for (std::size_t i = 0; i < changes.size(); ++i)
 		applyChannelModeChange(client, *channel, changes[i]);
+	if (_debug)
+		std::cout << command.getName() << " successful" << std::endl;
 }

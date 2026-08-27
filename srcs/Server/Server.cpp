@@ -5,9 +5,10 @@
 
 volatile sig_atomic_t Server::_stopRequested = 0;
 
-Server::Server(unsigned short port, const std::string &password)
-	: _listenerFd(-1),
-	_password(password)
+Server::Server(unsigned short port, const std::string &password) : 
+	_listenerFd(-1),
+	_password(password),
+	_debug(0)
 {
 	//open sockets at init
 	_stopRequested = 0;

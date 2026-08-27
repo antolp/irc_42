@@ -95,6 +95,6 @@ void Server::handleKick(Client &client, const Command &command)
 
 	broadcastToChannel(*channel, kickMessage);
 	removeMemberFromChannel(channel, target->getFd());
-	std::cout << command.getName() << " successful" << std::endl;
+	// std::cout << command.getName() << " successful" << std::endl;
 }
 

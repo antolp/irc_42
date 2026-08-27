@@ -108,5 +108,8 @@ void Server::handleInvite(Client &client, const Command &command)
 		+ channelName;
 
 	queueLine(*target, inviteMessage);
-	std::cout << command.getName() << " successful" << std::endl;
+
+	if (_debug)
+			std::cout << command.getName() << " successful" << std::endl;
+
 }

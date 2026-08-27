@@ -145,6 +145,7 @@ void Server::handleNick(Client &client, const Command &command)
 				queueLine(*target, nickMessage);
 		}
 	}
-
 	tryCompleteRegistration(client);
+	if (_debug)
+		std::cout << command.getName() << " successful" << std::endl;
 }

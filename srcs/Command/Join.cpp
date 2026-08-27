@@ -107,6 +107,8 @@ void Server::handleJoin(Client &client, const Command &command)
 	else
 		sendNumeric(client, "331", channel->getName() + " :No topic is set");
 	sendChannelNames(client, *channel);
-	std::cout << command.getName() << " successful" << std::endl;
+
+	if (_debug)
+			std::cout << command.getName() << " successful" << std::endl;
 }
 

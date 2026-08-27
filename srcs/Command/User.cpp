@@ -37,6 +37,7 @@ void Server::handleUser(Client &client, const Command &command)
 	client.setUser(parameters[0], parameters[3]);
 	tryCompleteRegistration(client);
 	//needs to be deleted or added to a debug class
+	if (_debug)
 	std::cout << command.getName() << " successful" << std::endl;
 }
 
