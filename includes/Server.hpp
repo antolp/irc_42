@@ -6,7 +6,9 @@
 # include <set>
 # include <string>
 # include <vector>
-
+# include <cerrno>
+# include <cstddef>
+# include <sstream>
 
 # include <arpa/inet.h>
 # include <cctype>
@@ -19,6 +21,21 @@
 # include <sys/socket.h>
 # include <unistd.h>
 
+struct ModeChange
+{
+	ModeChange(bool addingMode, char modeCharacter)
+		: adding(addingMode),
+		  mode(modeCharacter),
+		  hasArgument(false),
+		  argument("")
+	{
+	}
+
+	bool        adding;
+	char        mode;
+	bool        hasArgument;
+	std::string argument;
+};
 
 // //forward declaration
 class Client;
@@ -75,6 +92,13 @@ private:
 	void handleKick(Client &client, const Command &command);
 	void handleInvite(Client &client, const Command &command);
 	void handleMode(Client &client, const Command &command);
+	void applyChannelModeChange(Client &client, Channel &channel, const ModeChange &change);
+	void applyInviteOnlyMode(Client &client, Channel &channel, const ModeChange &change);
+	void applyTopicRestrictedMode(Client &client, Channel &channel, const ModeChange &change);
+	void applyKeyMode(Client &client, Channel &channel, const ModeChange &change);
+	void applyOperatorMode(Client &client, Channel &channel, const ModeChange &change);
+	void applyUserLimitMode(Client &client, Channel &channel, const ModeChange &change);
+	void broadcastModeChange(Client &client, Channel &channel, const ModeChange &change);
 	void handleUnknownCommand(Client &client, const Command &command);
 
 	//Utilities

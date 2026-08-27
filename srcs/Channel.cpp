@@ -111,3 +111,69 @@ bool Channel::isInvited(const std::string &nickname) const
 {
 	return _invitedUsers.find(nickname) != _invitedUsers.end();
 }
+
+
+// Channel modes
+bool Channel::isInviteOnly() const
+{
+	return _inviteOnly;
+}
+
+void Channel::setInviteOnly(bool enabled)
+{
+	_inviteOnly = enabled;
+}
+
+bool Channel::isTopicRestricted() const
+{
+	return _topicRestricted;
+}
+
+void Channel::setTopicRestricted(bool enabled)
+{
+	_topicRestricted = enabled;
+}
+
+bool Channel::hasKey() const
+{
+	return _hasKey;
+}
+
+const std::string &Channel::getKey() const
+{
+	return _key;
+}
+
+void Channel::setKey(const std::string &key)
+{
+	_hasKey = true;
+	_key = key;
+}
+
+void Channel::removeKey()
+{
+	_hasKey = false;
+	_key.clear();
+}
+
+bool Channel::hasUserLimit() const
+{
+	return _hasUserLimit;
+}
+
+std::size_t Channel::getUserLimit() const
+{
+	return _userLimit;
+}
+
+void Channel::setUserLimit(std::size_t limit)
+{
+	_hasUserLimit = true;
+	_userLimit = limit;
+}
+
+void Channel::removeUserLimit()
+{
+	_hasUserLimit = false;
+	_userLimit = 0;
+}

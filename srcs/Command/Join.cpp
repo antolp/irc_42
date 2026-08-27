@@ -58,7 +58,44 @@ void Server::handleJoin(Client &client, const Command &command)
 		if (channel->hasMember(client.getFd()))
 			return;
 
+		if (channel->isInviteOnly()
+			&& !channel->isInvited(client.getNickname()))
+		{
+			sendNumeric(
+				client,
+				"473",
+				channelName + " :Cannot join channel (+i)"
+			);
+			return;
+		}
+
+		std::string suppliedKey;
+		if (command.getParameterCount() >= 2)
+			suppliedKey = command.getParameters()[1];
+
+		if (channel->hasKey() && suppliedKey != channel->getKey())
+		{
+			sendNumeric(
+				client,
+				"475",
+				channelName + " :Cannot join channel (+k)"
+			);
+			return;
+		}
+
+		if (channel->hasUserLimit()
+			&& channel->getMemberCount() >= channel->getUserLimit())
+		{
+			sendNumeric(
+				client,
+				"471",
+				channelName + " :Cannot join channel (+l)"
+			);
+			return;
+		}
+
 		channel->addMember(client.getFd(), false);
+		channel->removeInvite(client.getNickname());
 	}
 
 	std::string joinMessage = ":" + client.getPrefix() + " JOIN :" + channelName;

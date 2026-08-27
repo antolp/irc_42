@@ -77,6 +77,16 @@ void Server::handleTopic(Client &client, const Command &command)
 		return;
 	}
 
+	if (channel->isTopicRestricted() && !channel->IsMemberOperator(client.getFd()))
+	{
+		sendNumeric(
+			client,
+			"482",
+			channelName + " :You're not channel operator"
+		);
+		return;
+	}
+
 	const std::string &newTopic = command.getParameters()[1];
 	channel->setTopic(newTopic);
 

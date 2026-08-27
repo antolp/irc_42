@@ -204,9 +204,7 @@ bool Server::receiveFromClient(std::size_t index)
 		return false;
 	}
 
-	client->appendInput(
-		buffer,
-		static_cast<std::size_t>(received)
+	client->appendInput(buffer, static_cast<std::size_t>(received)
 	);
 
 	std::string line;

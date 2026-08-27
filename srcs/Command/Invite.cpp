@@ -70,6 +70,17 @@ void Server::handleInvite(Client &client, const Command &command)
 		return;
 	}
 
+	//a debattre
+	if (channel->isInviteOnly() && !channel->IsMemberOperator(client.getFd()))
+	{
+		sendNumeric(
+			client,
+			"482",
+			channelName + " :You're not channel operator"
+		);
+		return;
+	}
+
 	if (channel->hasMember(target->getFd()))
 	{
 		sendNumeric(

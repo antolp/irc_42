@@ -8,38 +8,12 @@
 
 namespace
 {
-	struct ModeChange
-	{
-		ModeChange(bool addingMode, char modeCharacter)
-			: adding(addingMode),
-			  mode(modeCharacter),
-			  hasArgument(false)
-		{
-		}
-
-		bool        adding;
-		char        mode;
-		bool        hasArgument;
-		std::string argument;
-	};
-
 	bool isChannelTarget(const std::string &target)
 	{
 		if (target.empty())
 			return false;
 
 		return target[0] == '#' || target[0] == '&';
-	}
-
-	bool isSupportedChannelMode(char mode)
-	{
-		return (
-			mode == 'i'
-			|| mode == 't'
-			|| mode == 'k'
-			|| mode == 'o'
-			|| mode == 'l'
-		);
 	}
 
 	bool modeNeedsArgument(char mode, bool adding)
@@ -55,11 +29,9 @@ namespace
 
 		return false;
 	}
-	
-	bool parseChannelModeChanges(
-		const std::vector<std::string> &parameters,
-		std::vector<ModeChange> &changes,
-		std::size_t &argumentIndex)
+
+	bool parseChannelModeChanges(const std::vector<std::string> &parameters, 
+			std::vector<ModeChange> &changes)
 	{
 		const std::string &modeString = parameters[1];
 
@@ -73,8 +45,7 @@ namespace
 
 		bool adding = true;
 		bool signSeen = false;
-
-		argumentIndex = 2;
+		std::size_t argumentIndex = 2;
 
 		for (std::size_t i = 0; i < modeString.size(); ++i)
 		{
@@ -139,98 +110,6 @@ namespace
 	}
 }
 
-
-
-
-
-//
-//WILL HAVE TO GO
-//
-namespace
-{
-	void debugChannelModeQuery(const std::string &target)
-	{
-		std::cout
-			<< "CHANNEL MODE QUERY:"
-			<< std::endl
-			<< "\tchannel: "
-			<< target
-			<< std::endl;
-	}
-
-	void debugModeChanges(
-		const std::vector<ModeChange> &changes)
-	{
-		for (std::size_t i = 0; i < changes.size(); ++i)
-		{
-			const ModeChange &change = changes[i];
-
-			std::cout
-				<< "\tchange "
-				<< i
-				<< ": "
-				<< (change.adding ? '+' : '-')
-				<< change.mode;
-
-			if (!isSupportedChannelMode(change.mode))
-				std::cout << " [unsupported]";
-
-			if (change.hasArgument)
-			{
-				std::cout
-					<< " argument=\""
-					<< change.argument
-					<< "\"";
-			}
-
-			std::cout << std::endl;
-		}
-	}
-
-	void debugUnusedModeParameters(
-		const std::vector<std::string> &parameters,
-		std::size_t argumentIndex)
-	{
-		if (argumentIndex >= parameters.size())
-			return;
-
-		std::cout
-			<< "\tunused parameters:"
-			<< std::endl;
-
-		for (std::size_t i = argumentIndex;
-			 i < parameters.size();
-			 ++i)
-		{
-			std::cout
-				<< "\t\t"
-				<< parameters[i]
-				<< std::endl;
-		}
-	}
-
-	void debugChannelModeParsing(
-		const std::vector<std::string> &parameters,
-		const std::vector<ModeChange> &changes,
-		std::size_t argumentIndex)
-	{
-		std::cout
-			<< "CHANNEL MODE parsed:"
-			<< std::endl
-			<< "\tchannel: "
-			<< parameters[0]
-			<< std::endl
-			<< "\traw mode string: "
-			<< parameters[1]
-			<< std::endl;
-
-		debugModeChanges(changes);
-		debugUnusedModeParameters(parameters, argumentIndex);
-	}
-
-}
-
-
 //MODE
 //lets a client query or modify a channel's modes
 //client : "MODE <channel> [<modes> [arguments]]"
@@ -249,45 +128,60 @@ void Server::handleMode(Client &client, const Command &command)
 
 	if (!client.isRegistered())
 	{
-		std::cout
-			<< "MODE rejected: client not registered"
-			<< std::endl;
+		sendNumeric(
+			client,
+			"451",
+			":You have not registered"
+		);
 		return;
 	}
 
 	if (parameters.empty())
 	{
-		std::cout
-			<< "MODE rejected: missing target"
-			<< std::endl;
+		sendNumeric(
+			client,
+			"461",
+			"MODE :Not enough parameters"
+		);
 		return;
 	}
 
 	const std::string &target = parameters[0];
 
+	//no user mode subject doesnt ask for it
 	if (!isChannelTarget(target))
 		return;
 
-	//MODE #channel
-	if (parameters.size() == 1)
+	Channel *channel = findChannel(target);
+	if (channel == NULL)
 	{
-		debugChannelModeQuery(target);
+		sendNumeric(
+			client,
+			"403",
+			target + " :No such channel"
+		);
+		return;
+	}
+
+	//no query subject doesnt ask for it
+	if (parameters.size() == 1)
+		return;
+
+	//a debattre de nouveau
+	if (!channel->IsMemberOperator(client.getFd()))
+	{
+		sendNumeric(
+			client,
+			"482",
+			target + " :You're not channel operator"
+		);
 		return;
 	}
 
 	std::vector<ModeChange> changes;
-	std::size_t argumentIndex;
-
-	if (!parseChannelModeChanges(
-			parameters,
-			changes,
-			argumentIndex))
-	{
+	if (!parseChannelModeChanges(parameters, changes))
 		return;
-	}
 
-	debugChannelModeParsing(
-		parameters,
-		changes,
-		argumentIndex);
+	for (std::size_t i = 0; i < changes.size(); ++i)
+		applyChannelModeChange(client, *channel, changes[i]);
 }

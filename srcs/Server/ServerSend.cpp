@@ -112,9 +112,7 @@ void Server::queueBroadcastLine(int senderFd, const std::string &line)
 	}
 }
 
-void Server::handleCompleteLine(
-	Client &client,
-	const std::string &line)
+void Server::handleCompleteLine(Client &client, const std::string &line)
 {
 	Command command(line);
 

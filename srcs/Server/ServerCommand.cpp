@@ -47,9 +47,7 @@ void Server::dispatchCommand(Client &client, const Command &command)
 		handleUnknownCommand(client, command);
 }
 
-void Server::handleUnknownCommand(
-	Client &client,
-	const Command &command)
+void Server::handleUnknownCommand(Client &client, const Command &command)
 {
 	std::cout
 		<< "Unknown command from fd "

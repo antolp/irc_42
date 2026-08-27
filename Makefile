@@ -23,8 +23,9 @@ COMMAND_SOURCES = srcs/Command/Command.cpp \
                   srcs/Command/Join.cpp \
                   srcs/Command/Topic.cpp \
                   srcs/Command/Kick.cpp \
+                  srcs/Command/Invite.cpp \
                   srcs/Command/Mode.cpp \
-                  srcs/Command/Invite.cpp
+                  srcs/Command/ModeApply.cpp
 
 CORE_SOURCES = srcs/main.cpp \
                srcs/Client.cpp \

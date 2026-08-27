@@ -47,8 +47,7 @@ void Server::addPollFd(int fd, short events)
 	for (std::size_t i = 0; i < _pollFds.size(); ++i)
 	{
 		if (_pollFds[i].fd == fd)
-			throw std::runtime_error(
-				"attempted to register the same fd twice !!!"
+			throw std::runtime_error("attempted to register the same fd twice !!!"
 			);
 	}
 	
