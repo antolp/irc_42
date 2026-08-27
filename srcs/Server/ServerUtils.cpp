@@ -75,15 +75,13 @@ Client *Server::findClient(int fd)
 
 Client *Server::findClientByNickname(const std::string &nickname)
 {
-	std::string foldedNickname = ircCaseFold(nickname);
+	std::map<std::string, int>::iterator it =
+		_nicknameIndex.find(ircCaseFold(nickname));
 
-	for (std::map<int, Client *>::iterator it = _clients.begin(); 
-		it != _clients.end(); it++)
-	{
-		if (it->second->getNickname() == foldedNickname)
-			return it->second;
-	}
-	return NULL;
+	if (it == _nicknameIndex.end())
+		return NULL;
+
+	return findClient(it->second);
 }
 
 bool Server::isValidNickname(const std::string &nickname) const

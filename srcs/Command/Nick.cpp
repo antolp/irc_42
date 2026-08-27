@@ -6,12 +6,15 @@
 
 #include <iostream>
 #include <vector>
+#include <set>
 
 //NICK
 //	required for registration
 //client : "NICK <nickname>"
 //lets client provide a nickname the server should use
 //that nickname can be reset by client
+//server sends :
+//	oldNick!user@host NICK :newNick to clients sharing a channel
 void Server::handleNick(Client &client, const Command &command)
 {
 	if (command.getParameterCount() < 1)
@@ -24,7 +27,8 @@ void Server::handleNick(Client &client, const Command &command)
 		return;
 	}
 
-	const std::string &nickname =command.getParameters()[0];
+	const std::string &nickname = command.getParameters()[0];
+
 	if (!isValidNickname(nickname))
 	{
 		sendNumeric(
@@ -36,9 +40,12 @@ void Server::handleNick(Client &client, const Command &command)
 	}
 
 	const std::string key = ircCaseFold(nickname);
-	std::map<std::string, int>::iterator existing = _nicknameIndex.find(key);
-	
-	if (existing != _nicknameIndex.end() && existing->second != client.getFd())
+
+	std::map<std::string, int>::iterator existing =
+		_nicknameIndex.find(key);
+
+	if (existing != _nicknameIndex.end()
+		&& existing->second != client.getFd())
 	{
 		sendNumeric(
 			client,
@@ -47,15 +54,64 @@ void Server::handleNick(Client &client, const Command &command)
 		);
 		return;
 	}
+
+	//exact same nickname do nothing
+	//case-only change such as Alice -> ALICE still allowed
+	if (client.hasNickname()
+		&& client.getNickname() == nickname)
+	{
+		return;
+	}
+
+	const bool wasRegistered = client.isRegistered();
+
+	std::string oldNickname;
+	std::string oldPrefix;
+	std::set<int> recipients;
+
 	if (client.hasNickname())
 	{
-		const std::string oldNickname = client.getNickname();
+		oldNickname = client.getNickname();
 
-		//invites stored by nickname, rename should not loose them
-		for (std::map<std::string, Channel *>::iterator it = _channels.begin();
-			 it != _channels.end(); ++it)
+		if (wasRegistered)
+		{
+			oldPrefix = client.getPrefix();
+
+			// The client itself must receive the NICK change.
+			recipients.insert(client.getFd());
+
+			//each client sharing a channel with user must receive de message ONCE
+			for (std::map<std::string, Channel *>::iterator it =
+					_channels.begin();
+				 it != _channels.end();
+				 ++it)
+			{
+				Channel *channel = it->second;
+
+				if (!channel->hasMember(client.getFd()))
+					continue;
+
+				const Channel::MemberMap &members =
+					channel->getMembers();
+
+				for (Channel::MemberMap::const_iterator member =
+						members.begin();
+					 member != members.end();
+					 ++member)
+				{
+					recipients.insert(member->first);
+				}
+			}
+		}
+		
+		//update invites
+		for (std::map<std::string, Channel *>::iterator it =
+				_channels.begin();
+			 it != _channels.end();
+			 ++it)
 		{
 			Channel *channel = it->second;
+
 			if (channel->isInvited(oldNickname))
 			{
 				channel->removeInvite(oldNickname);
@@ -63,12 +119,32 @@ void Server::handleNick(Client &client, const Command &command)
 			}
 		}
 
-		_nicknameIndex.erase(ircCaseFold(oldNickname));
+		_nicknameIndex.erase(
+			ircCaseFold(oldNickname)
+		);
 	}
 
 	client.setNickname(nickname);
 	_nicknameIndex[key] = client.getFd();
 
+	//the first NICK used during registration is not broadcast.
+	if (wasRegistered)
+	{
+		const std::string nickMessage =
+			":" + oldPrefix
+			+ " NICK :"
+			+ nickname;
+
+		for (std::set<int>::iterator it = recipients.begin();
+			 it != recipients.end();
+			 ++it)
+		{
+			Client *target = findClient(*it);
+
+			if (target != NULL)
+				queueLine(*target, nickMessage);
+		}
+	}
+
 	tryCompleteRegistration(client);
 }
-
