@@ -65,7 +65,7 @@ void Server::handleJoin(Client &client, const Command &command)
 			sendNumeric(
 				client,
 				"473",
-				channelName + " :Cannot join channel (+i)"
+				channel->getName() + " :Cannot join channel (+i)"
 			);
 			return;
 		}
@@ -79,7 +79,7 @@ void Server::handleJoin(Client &client, const Command &command)
 			sendNumeric(
 				client,
 				"475",
-				channelName + " :Cannot join channel (+k)"
+				channel->getName() + " :Cannot join channel (+k)"
 			);
 			return;
 		}
@@ -90,7 +90,7 @@ void Server::handleJoin(Client &client, const Command &command)
 			sendNumeric(
 				client,
 				"471",
-				channelName + " :Cannot join channel (+l)"
+				channel->getName() + " :Cannot join channel (+l)"
 			);
 			return;
 		}
@@ -99,13 +99,13 @@ void Server::handleJoin(Client &client, const Command &command)
 		channel->removeInvite(client.getNickname());
 	}
 
-	std::string joinMessage = ":" + client.getPrefix() + " JOIN :" + channelName;
+	std::string joinMessage = ":" + client.getPrefix() + " JOIN :" + channel->getName();
 	broadcastToChannel(*channel, joinMessage);
 
 	if (channel->hasTopic())
-		sendNumeric(client, "332", channelName + " :" + channel->getTopic());
+		sendNumeric(client, "332", channel->getName() + " :" + channel->getTopic());
 	else
-		sendNumeric(client, "331", channelName + " :No topic is set");
+		sendNumeric(client, "331", channel->getName() + " :No topic is set");
 	sendChannelNames(client, *channel);
 	std::cout << command.getName() << " successful" << std::endl;
 }
