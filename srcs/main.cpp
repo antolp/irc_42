@@ -8,9 +8,9 @@
 //no char, lower than 65535
 static bool checkPort(const std::string &text, unsigned short &port)
 {
-	std::istringstream stream(text);
-	unsigned long      value;
-	char               extraChar;
+	std::istringstream	stream(text);
+	unsigned long		value;
+	char				extraChar;
 
 	if (!(stream >> value))
 		return false;

@@ -14,7 +14,7 @@ namespace
 bool Server::flushClientOutput(std::size_t index)
 {
 	const int fd = _pollFds[index].fd;
-	Client   *client = findClient(fd);
+	Client	*client = findClient(fd);
 
 	if (client == NULL)
 		return false;

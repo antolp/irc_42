@@ -1,6 +1,7 @@
 #include "Server.hpp"
 #include "Client.hpp"
 #include "Channel.hpp"
+#include "Utils.hpp"
 
 volatile sig_atomic_t Server::_stopRequested = 0;
 
@@ -230,7 +231,7 @@ void Server::cleanupClientIrcState(Client &client)
 	if (!nickname.empty())
 	{
 		std::map<std::string, int>::iterator nickIt =
-			_nicknameIndex.find(nickname);
+			_nicknameIndex.find(ircCaseFold(nickname));
 
 		if (nickIt != _nicknameIndex.end() && nickIt->second == fd)
 			_nicknameIndex.erase(nickIt);
@@ -250,6 +251,6 @@ void Server::removeMemberFromChannel(Channel *channel, int fd)
 	if (!channel->empty())
 		return;
 
-	_channels.erase(channel->getName());
+	_channels.erase(ircCaseFold(channel->getName()));
 	delete channel;
 }

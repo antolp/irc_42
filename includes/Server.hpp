@@ -31,10 +31,10 @@ struct ModeChange
 	{
 	}
 
-	bool        adding;
-	char        mode;
-	bool        hasArgument;
-	std::string argument;
+	bool		adding;
+	char		mode;
+	bool		hasArgument;
+	std::string	argument;
 };
 
 // //forward declaration
@@ -71,11 +71,11 @@ private:
 	void	removeDisconnectedClients();
 
 	//send
-	void		queueBroadcastLine(int senderFd, const std::string &line);
-	bool		queueRaw(Client &client, const char *data, std::size_t length);
-	bool		queueLine(Client &client, const std::string &line);	
-	bool		flushClientOutput(std::size_t index);
-	bool		sendNumeric(Client &client, const std::string &numeric, const std::string &arguments);
+	void	queueBroadcastLine(int senderFd, const std::string &line);
+	bool	queueRaw(Client &client, const char *data, std::size_t length);
+	bool	queueLine(Client &client, const std::string &line);	
+	bool	flushClientOutput(std::size_t index);
+	bool	sendNumeric(Client &client, const std::string &numeric, const std::string &arguments);
 
 	// Command processing
 	void handleCompleteLine(Client &client, const std::string &line);
@@ -109,15 +109,15 @@ private:
 	void	tryCompleteRegistration(Client &client);
 	bool	isValidNickname(const std::string &nickname) const;
 	void	SendWelcome(Client &client);
-	void    broadcastToChannel(const Channel &channel, const std::string &message, int excludeFd = -1);
-	void    sendChannelNames(Client &client, const Channel &channel);
+	void	broadcastToChannel(const Channel &channel, const std::string &message, int excludeFd = -1);
+	void	sendChannelNames(Client &client, const Channel &channel);
 
-	int                             _listenerFd;
-	std::vector<struct pollfd> 		_pollFds;
-	std::string                     _password;
+	int							_listenerFd;
+	std::string					_password;
+	std::vector<struct pollfd>	_pollFds;
 
-	std::map<int, Client *>         _clients;
-	std::map<std::string, int>		_nicknameIndex;
+	std::map<int, Client *>		_clients;
+	std::map<std::string, int>	_nicknameIndex;
 
 	std::map<std::string, Channel *> _channels;
 };

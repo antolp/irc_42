@@ -20,9 +20,9 @@ private:
 	void parse(const std::string &line);
 	void normalizeName();
 
-	bool                     _valid;
-	std::string              _name;
-	std::vector<std::string> _parameters;
+	bool						_valid;
+	std::string					_name;
+	std::vector<std::string>	_parameters;
 };
 
 #endif

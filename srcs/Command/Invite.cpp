@@ -8,9 +8,9 @@
 
 //INVITE
 //lets a user invite another user to a channel
-//client : "INVITE <nickname> <channel>"
-//server : to sender -> 341 RPL_INVITING <nickname> <channel>
-//         to target -> ":nick!user@localhost INVITE <nickname> :<channel>"
+//client :	"INVITE <nickname> <channel>"
+//server :	to sender -> 341 RPL_INVITING <nickname> <channel>
+//			to target -> ":nick!user@localhost INVITE <nickname> :<channel>"
 void Server::handleInvite(Client &client, const Command &command)
 {
 	if (!client.isRegistered())
@@ -71,7 +71,7 @@ void Server::handleInvite(Client &client, const Command &command)
 	}
 
 	//a debattre
-	if (channel->isInviteOnly() && !channel->IsMemberOperator(client.getFd()))
+	if (!channel->IsMemberOperator(client.getFd()))
 	{
 		sendNumeric(
 			client,

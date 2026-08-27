@@ -2,6 +2,7 @@
 #include "Client.hpp"
 #include "Channel.hpp"
 #include "Command.hpp"
+#include "Utils.hpp"
 
 #include <iostream>
 #include <vector>
@@ -50,7 +51,7 @@ void Server::handleJoin(Client &client, const Command &command)
 	if (channel == NULL)
 	{
 		channel = new Channel(channelName);
-		_channels[channelName] = channel;
+		_channels[ircCaseFold(channelName)] = channel;
 		channel->addMember(client.getFd(), true);
 	}
 	else

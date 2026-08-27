@@ -2,6 +2,7 @@
 #include "Client.hpp"
 #include "Channel.hpp"
 #include "Command.hpp"
+#include "Utils.hpp"
 
 #include <iostream>
 #include <vector>
@@ -34,7 +35,7 @@ void Server::handleNick(Client &client, const Command &command)
 		return;
 	}
 
-	const std::string key = nickname;
+	const std::string key = ircCaseFold(nickname);
 	std::map<std::string, int>::iterator existing = _nicknameIndex.find(key);
 	
 	if (existing != _nicknameIndex.end() && existing->second != client.getFd())
@@ -48,7 +49,21 @@ void Server::handleNick(Client &client, const Command &command)
 	}
 	if (client.hasNickname())
 	{
-		_nicknameIndex.erase(client.getNickname());
+		const std::string oldNickname = client.getNickname();
+
+		//invites stored by nickname, rename should not loose them
+		for (std::map<std::string, Channel *>::iterator it = _channels.begin();
+			 it != _channels.end(); ++it)
+		{
+			Channel *channel = it->second;
+			if (channel->isInvited(oldNickname))
+			{
+				channel->removeInvite(oldNickname);
+				channel->addInvite(nickname);
+			}
+		}
+
+		_nicknameIndex.erase(ircCaseFold(oldNickname));
 	}
 
 	client.setNickname(nickname);

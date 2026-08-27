@@ -33,7 +33,7 @@ void Server::handleCap(Client &client, const Command &command)
 
 		queueLine(
 			client,
-			":ircserv CAP * NAK" + requested
+			":ircserv CAP * NAK " + requested
 		);
 	}
 	//needs to be deleted or added to a debug class

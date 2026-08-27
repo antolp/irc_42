@@ -78,7 +78,7 @@ public:
 private:
 	std::string _name;
 	std::string _topic;
-	MemberMap   _members;
+	MemberMap	_members;
 	std::set<std::string> _invitedUsers;
 
 	bool _inviteOnly;

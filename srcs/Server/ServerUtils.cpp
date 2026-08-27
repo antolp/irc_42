@@ -1,6 +1,7 @@
 #include "Server.hpp"
 #include "Client.hpp"
 #include "Channel.hpp"
+#include "Utils.hpp"
 
 //function NEEDS to be prototyped as static in header
 //else its type goes from "void (*)(int)" to "void (Server::*)(int)"
@@ -74,16 +75,17 @@ Client *Server::findClient(int fd)
 
 Client *Server::findClientByNickname(const std::string &nickname)
 {
+	std::string foldedNickname = ircCaseFold(nickname);
+
 	for (std::map<int, Client *>::iterator it = _clients.begin(); 
 		it != _clients.end(); it++)
 	{
-		if (it->second->getNickname() == nickname)
+		if (it->second->getNickname() == foldedNickname)
 			return it->second;
 	}
 	return NULL;
 }
 
-//not complete
 bool Server::isValidNickname(const std::string &nickname) const
 {
 	if (nickname.empty())
@@ -118,7 +120,7 @@ void	Server::SendWelcome(Client &client)
 
 Channel *Server::findChannel(const std::string &name)
 {
-	std::map<std::string, Channel *>::iterator it = _channels.find(name);
+	std::map<std::string, Channel *>::iterator it = _channels.find(ircCaseFold(name));
 	if (it == _channels.end())
 		return NULL;
 

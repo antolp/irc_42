@@ -49,12 +49,19 @@ void Server::dispatchCommand(Client &client, const Command &command)
 
 void Server::handleUnknownCommand(Client &client, const Command &command)
 {
+	//needs to be deleted or added to a debug class
 	std::cout
 		<< "Unknown command from fd "
 		<< client.getFd()
 		<< ": "
 		<< command.getName()
 		<< std::endl;
+	
+	sendNumeric(
+		client,
+		"421",
+		command.getName() + " :Unknown command"
+	);
 }
 
 void Server::tryCompleteRegistration(Client &client)

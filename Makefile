@@ -30,7 +30,8 @@ COMMAND_SOURCES = srcs/Command/Command.cpp \
 CORE_SOURCES = srcs/main.cpp \
                srcs/Client.cpp \
                srcs/ClientRegister.cpp \
-               srcs/Channel.cpp
+               srcs/Channel.cpp \
+			   srcs/Utils.cpp
 
 SOURCES = $(CORE_SOURCES) $(SERVER_SOURCES) $(COMMAND_SOURCES)
 

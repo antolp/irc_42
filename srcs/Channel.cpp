@@ -1,4 +1,5 @@
 #include "Channel.hpp"
+#include "Utils.hpp"
 
 // Member
 bool Channel::Member::isOperator() const
@@ -99,19 +100,18 @@ const Channel::MemberMap &Channel::getMembers() const
 
 void Channel::addInvite(const std::string &nickname)
 {
-	_invitedUsers.insert(nickname);
+	_invitedUsers.insert(ircCaseFold(nickname));
 }
 
 void Channel::removeInvite(const std::string &nickname)
 {
-	_invitedUsers.erase(nickname);
+	_invitedUsers.erase(ircCaseFold(nickname));
 }
 
 bool Channel::isInvited(const std::string &nickname) const
 {
-	return _invitedUsers.find(nickname) != _invitedUsers.end();
+	return _invitedUsers.find(ircCaseFold(nickname)) != _invitedUsers.end();
 }
-
 
 // Channel modes
 bool Channel::isInviteOnly() const

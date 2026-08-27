@@ -8,9 +8,9 @@
 
 //TOPIC
 //lets client view or change channel topic
-//client : "TOPIC <channel> [topic]"
-//server : view -> 332 RPL_TOPIC or 331 RPL_NOTOPIC
-//         change -> broadcast ":nick!user@localhost TOPIC <channel> :[topic]"
+//client :	"TOPIC <channel> [topic]"
+//server :	view -> 332 RPL_TOPIC or 331 RPL_NOTOPIC
+//			change -> broadcast ":nick!user@localhost TOPIC <channel> :[topic]"
 void Server::handleTopic(Client &client, const Command &command)
 {
 	if (!client.isRegistered())
@@ -90,7 +90,10 @@ void Server::handleTopic(Client &client, const Command &command)
 	const std::string &newTopic = command.getParameters()[1];
 	channel->setTopic(newTopic);
 
-	std::string topicMessage = ":" + client.getPrefix() + " TOPIC " + channelName + " :" + newTopic;
+	std::string topicMessage = ":" 
+			+ client.getPrefix() 
+			+ " TOPIC " + channelName 
+			+ " :" + newTopic;
 	broadcastToChannel(*channel, topicMessage);
 	std::cout << command.getName() << " successful" << std::endl;
 }

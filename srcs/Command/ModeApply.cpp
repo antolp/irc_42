@@ -10,6 +10,8 @@ namespace
 	//sstream
 	bool parsePositiveUserLimit(const std::string& text, std::size_t& limit)
 	{
+		if (text.empty() || text[0] < '0' || text[0] > '9')
+			return false;
 		std::istringstream stream(text);
 
 		std::size_t value;
