@@ -1,69 +1,82 @@
-This project was created as part of the 42 curriculum by edesprez and anle-pag.
+*This project has been created as part of the 42 curriculum by edesprez, anle-pag.*
 
 # ft_irc
 
-An IRC (Internet Relay Chat) server developed in C++98, using non-blocking I/O multiplexing with poll().
+## Description
 
----
+This project is an IRC server written in C++98. The goal of the project is to implement the core behavior of an IRC server and allow multiple clients to communicate over TCP/IP.
 
-## Project Overview
+The server uses non-blocking sockets and a single `poll()` call to handle all network I/O. It implements the IRC features required by the subject: client authentication and registration, channels, private and channel messages, channel operators, and the operator commands `KICK`, `INVITE`, `TOPIC`, and `MODE`.
 
-ft_irc is a project from the 42 curriculum aiming to re-implement an IRC server from scratch. The server handles multiple concurrent client connections without multithreading, relying exclusively on non-blocking sockets and the poll() system call.
+### Architecture
 
-The server complies with the IRC protocol specifications (RFC 1459) as well as modern specifications (Modern IRC Specs), allowing connections from standard IRC clients such as irssi, nc (Netcat), or HexChat.
+- `Server` owns the listening socket, all `Client` objects, all `Channel` objects, and the `poll()` descriptor list.
+- Each `Client` stores its own registration state and input/output buffers for partial reads and non-blocking writes.
+- Each `Channel` stores channel-specific state such as its topic, modes, invitations, and members. Members are identified by their file descriptor, with channel-local information such as operator status. 
+- When a channel needs to address one of its members, the `Server` resolves that file descriptor back to the corresponding `Client`.
 
----
+This keeps ownership of connections centralized while preventing channels from owning or duplicating `Client` objects.
 
-## Implemented Commands
 
-All differents commands :
-PASS : Initial client authentication with the server password. 
-NICK : Set or change the client nickname. 
-USER : Set the username and real name of the client. 
-CAP : IRC capability negotiation for modern clients (e.g., CAP LS). 
-PING : Connection health check between client and server. 
-JOIN : Create or join an IRC channel (#channel or &channel). 
-PRIVMSG : Send private messages to a user or broadcast to a channel. 
-TOPIC : View or modify the topic of a channel. 
-KICK : Eject a member from a channel (channel operator privilege). 
-INVITE : Invite a user to join a channel. 
-QUIT : Gracefully disconnect from the server with an optional quit message. 
+### Implemented commands
 
-## Compilation and Usage
+- `PASS` — authenticate with the server password.
+- `NICK` - set or change a nickname.
+- `USER` - set the username and real name.
+- `JOIN` - create or join a channel.
+- `PRIVMSG` - send a message to a user or channel.
+- `TOPIC` - view or change a channel topic.
+- `KICK` - remove a user from a channel.
+- `INVITE` - invite a user to a channel.
+- `MODE` - manage channel modes :
+  - `i` - invite-only channel.
+  - `t` - restrict topic changes to operators.
+  - `k` - set or remove a channel key.
+  - `o` - give or remove operator privileges.
+  - `l` - set or remove the channel user limit.
+- `CAP`, `PING`, `QUIT` - additional client compatibility commands.
 
-The project compiles with make using C++98 flags (-Wall -Wextra -Werror -std=c++98):
+## Instructions
+
+### Compilation
 
 ```bash
 make
 ```
 
-Makefile rules:
-- make: Builds the ircserv executable.
-- make clean: Removes object files (.obj/).
-- make fclean: Removes object files and the ircserv binary.
-- make re: Performs a clean rebuild of the project.
+Other available Makefile rules are `clean`, `fclean`, and `re`.
 
-### Running the Server
+### Running the server
 
 ```bash
 ./ircserv <port> <password>
 ```
 
 Example:
+
 ```bash
 ./ircserv 6667 mysecretpassword
 ```
 
-### Connecting to the Server
+### Connecting with an IRC client
 
-#### Using Irssi
+For example, with Irssi (our reference client) :
+
 ```bash
 irssi -c localhost -p 6667 -w mysecretpassword
 ```
 
-#### Using Netcat (nc)
+### Testing with Netcat
+
+Netcat can be used as a low-level TCP testing tool to send IRC commands manually:
+
 ```bash
-nc localhost 6667
+nc -C 127.0.0.1 6667
+```
+
+Then, for example:
+
+```text
 PASS mysecretpassword
 NICK alice
 USER alice 0 * :Alice Wonderland
@@ -71,16 +84,14 @@ JOIN #42
 PRIVMSG #42 :Hello world!
 ```
 
----
+## Resources
 
-## Resources and References
+- [Beej's Guide to Network Programming](https://beej.us/guide/bgnet/)
+- [Linux TCP manual page](https://man7.org/linux/man-pages/man7/tcp.7.html)
+- [RFC 1459 — Internet Relay Chat Protocol](https://www.rfc-editor.org/rfc/rfc1459)
+- [IRC command and numeric reference](https://dd.ircdocs.horse/refs/commands/)
+- [Modern IRC documentation](https://modern.ircdocs.horse/)
 
-This project relies on network programming fundamentals and IRC protocol standards:
+### AI usage
 
-- [Beej's Guide to Network Programming - System Calls or Bust](https://beej.us/guide/bgnet/html/split/system-calls-or-bust.html#system-calls-or-bust): The guide for POSIX sockets (socket, bind, listen, accept, poll, send, recv).
-- [Linux TCP Man Page (tcp.7)](https://man7.org/linux/man-pages/man7/tcp.7.html): TCP protocol specifications and socket options on Linux.
-- [RFC 1459 - Internet Relay Chat Protocol](https://www.rfc-editor.org/info/rfc1459/): The original IRC protocol specification.
-- [IRC Command Reference (ircdocs)](https://dd.ircdocs.horse/refs/commands/): Comprehensive reference for IRC commands and numeric replies.
-- [Modern IRC Documentation](https://modern.ircdocs.horse/#mode-message): Documentation on modern IRC specifications and message handling.
-
----
+AI tools were used to help research IRC protocol behavior, clarify networking concepts, assist with debugging, plan tests, and review parts of the code. AI suggestions were reviewed, understood, adapted to fit the project. 
